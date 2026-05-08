@@ -33,6 +33,15 @@ async def analyze(file: UploadFile = File(...)):
     df = df.rename(columns={"Ptype": "ptype", "Cpt": "cpt", "Description": "description",
                               "Charged": "charged", "Paid": "paid"})
 
+    required = {"cpt", "ptype", "charged", "paid"}
+    missing = required - set(df.columns)
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"CSV is missing required columns: {', '.join(sorted(missing))}. "
+                   f"Expected headers: Cpt, Ptype, Charged, Paid."
+        )
+
     try:
         result = analyze_claims(df)
     except ValueError as e:
