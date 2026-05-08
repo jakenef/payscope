@@ -1,0 +1,99 @@
+<h2>System Architecture</h2>
+<p class="subtitle">Vite React + FastAPI + OpenAI — two analysis axes, one AI call, ships in 24hrs</p>
+
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 860px; margin: 0 auto;">
+
+  <!-- Row 1: Frontend -->
+  <div style="background: #1a1a2e; border: 1px solid #3b82f6; border-radius: 10px; padding: 16px;">
+    <div class="label" style="color: #3b82f6; margin-bottom: 8px;">FRONTEND — Vite + React</div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <div style="background: #0f3460; border-radius: 6px; padding: 8px 14px; font-size: 13px;">CSV Upload</div>
+      <div style="background: #0f3460; border-radius: 6px; padding: 8px 14px; font-size: 13px;">KPI Cards</div>
+      <div style="background: #0f3460; border-radius: 6px; padding: 8px 14px; font-size: 13px;">Underpayment Table</div>
+      <div style="background: #0f3460; border-radius: 6px; padding: 8px 14px; font-size: 13px;">Payer Variance Chart</div>
+      <div style="background: #0f3460; border-radius: 6px; padding: 8px 14px; font-size: 13px;">Biller Score Gauge</div>
+      <div style="background: #0f3460; border-radius: 6px; padding: 8px 14px; font-size: 13px;">AI Narrative Panel</div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div style="text-align: center; color: #6b7280; font-size: 13px;">
+    ↕ POST /api/analyze (multipart CSV) &nbsp;|&nbsp; JSON response
+  </div>
+
+  <!-- Row 2: Backend -->
+  <div style="background: #1a1a2e; border: 1px solid #10b981; border-radius: 10px; padding: 16px;">
+    <div class="label" style="color: #10b981; margin-bottom: 8px;">BACKEND — FastAPI (Python)</div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+      <div style="background: #064e3b; border-radius: 6px; padding: 8px 14px; font-size: 13px;">
+        <strong>1. Parse CSV</strong><br>
+        <span style="color: #9ca3af; font-size: 11px;">pandas DataFrame</span>
+      </div>
+      <div style="color: #6b7280; align-self: center;">→</div>
+      <div style="background: #064e3b; border-radius: 6px; padding: 8px 14px; font-size: 13px;">
+        <strong>2. Rate Lookup</strong><br>
+        <span style="color: #9ca3af; font-size: 11px;">CPT → Medicare rate</span>
+      </div>
+      <div style="color: #6b7280; align-self: center;">→</div>
+      <div style="background: #064e3b; border-radius: 6px; padding: 8px 14px; font-size: 13px;">
+        <strong>3. Two-Axis Compare</strong><br>
+        <span style="color: #9ca3af; font-size: 11px;">charged vs paid (downcoding)<br>paid vs Medicare (underpayment)</span>
+      </div>
+      <div style="color: #6b7280; align-self: center;">→</div>
+      <div style="background: #064e3b; border-radius: 6px; padding: 8px 14px; font-size: 13px;">
+        <strong>4. Score</strong><br>
+        <span style="color: #9ca3af; font-size: 11px;">Biller 0–100</span>
+      </div>
+      <div style="color: #6b7280; align-self: center;">→</div>
+      <div style="background: #064e3b; border-radius: 6px; padding: 8px 14px; font-size: 13px;">
+        <strong>5. Call OpenAI</strong><br>
+        <span style="color: #9ca3af; font-size: 11px;">1 call, full summary</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two analysis axes callout -->
+  <div style="display: flex; gap: 12px;">
+    <div style="flex: 1; background: #1a1a2e; border: 1px solid #ef4444; border-radius: 10px; padding: 14px;">
+      <div class="label" style="color: #ef4444; margin-bottom: 6px;">AXIS 1 — DOWNCODING DETECTION</div>
+      <div style="font-size: 13px; color: #f9fafb;">Charged vs Paid</div>
+      <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">
+        Insurance paid less than billed amount.<br>
+        Flags systematic reduction by payer or CPT.<br>
+        <em>"Aetna is paying 61% of what you charged for 99213"</em>
+      </div>
+    </div>
+    <div style="flex: 1; background: #1a1a2e; border: 1px solid #f59e0b; border-radius: 10px; padding: 14px;">
+      <div class="label" style="color: #f59e0b; margin-bottom: 6px;">AXIS 2 — UNDERPAYMENT vs MEDICARE</div>
+      <div style="font-size: 13px; color: #f9fafb;">Paid vs CMS Rate</div>
+      <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">
+        Paid below Medicare standard rate.<br>
+        Independent of what was billed — pure benchmark.<br>
+        <em>"BC/BS paid $140 for septoplasty, Medicare pays $472"</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Data sources side by side -->
+  <div style="display: flex; gap: 12px;">
+    <div style="flex: 1; background: #1a1a2e; border: 1px solid #f59e0b; border-radius: 10px; padding: 14px;">
+      <div class="label" style="color: #f59e0b; margin-bottom: 6px;">REFERENCE DATA</div>
+      <div style="font-size: 13px;">Medicare rates JSON</div>
+      <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">~30 ENT CPT codes<br>Bundled in repo<br>CMS 2024 Fee Schedule</div>
+    </div>
+    <div style="flex: 1; background: #1a1a2e; border: 1px solid #8b5cf6; border-radius: 10px; padding: 14px;">
+      <div class="label" style="color: #8b5cf6; margin-bottom: 6px;">AI — OPENAI GPT-4o</div>
+      <div style="font-size: 13px;">Single call per upload</div>
+      <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">
+        Receives: payer variances, downcoding flags,<br>top anomalies, biller score<br>
+        Returns: patterns + narrative summary
+      </div>
+    </div>
+  </div>
+
+  <!-- No DB callout -->
+  <div style="background: #1c1c1c; border: 1px dashed #4b5563; border-radius: 8px; padding: 12px; text-align: center; font-size: 13px; color: #9ca3af;">
+    No database &nbsp;·&nbsp; No auth &nbsp;·&nbsp; Stateless per-upload &nbsp;·&nbsp; Deploy: Uvicorn + Railway/Render
+  </div>
+
+</div>

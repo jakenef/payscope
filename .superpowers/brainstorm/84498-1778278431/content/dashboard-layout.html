@@ -1,0 +1,125 @@
+<h2>Dashboard Layout</h2>
+<p class="subtitle">Which structure works best for the demo? Pick the one that tells the story most clearly.</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0f172a; padding: 16px; border-radius: 6px; font-size: 11px; color: #e2e8f0;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:5px; margin-bottom:8px;">
+        <div style="background:#1e293b;padding:6px;border-radius:4px;text-align:center;">
+          <div style="color:#60a5fa;font-size:9px;">EXPECTED</div>
+          <div style="font-weight:bold;">$84,200</div>
+        </div>
+        <div style="background:#1e293b;padding:6px;border-radius:4px;text-align:center;">
+          <div style="color:#34d399;font-size:9px;">COLLECTED</div>
+          <div style="font-weight:bold;">$71,340</div>
+        </div>
+        <div style="background:#1e293b;padding:6px;border-radius:4px;text-align:center;">
+          <div style="color:#f87171;font-size:9px;">LEAKAGE</div>
+          <div style="font-weight:bold;">$12,860</div>
+        </div>
+        <div style="background:#1e293b;padding:6px;border-radius:4px;text-align:center;">
+          <div style="color:#fbbf24;font-size:9px;">BILLER SCORE</div>
+          <div style="font-weight:bold;">67/100</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:5px;">
+        <div style="background:#1e293b;padding:8px;border-radius:4px;">
+          <div style="color:#94a3b8;font-size:9px;margin-bottom:4px;">UNDERPAYMENT TABLE</div>
+          <div style="color:#f87171;font-size:9px;">Aetna / 99213 · −38%</div>
+          <div style="color:#f87171;font-size:9px;">BC/BS / 30520 · −70%</div>
+          <div style="color:#fbbf24;font-size:9px;">ALPHA / 99204 · −21%</div>
+        </div>
+        <div style="background:#1e293b;padding:8px;border-radius:4px;">
+          <div style="color:#94a3b8;font-size:9px;margin-bottom:4px;">PAYER BARS</div>
+          <div style="height:6px;background:#3b82f6;border-radius:2px;margin-bottom:3px;width:90%"></div>
+          <div style="height:6px;background:#ef4444;border-radius:2px;margin-bottom:3px;width:55%"></div>
+          <div style="height:6px;background:#f59e0b;border-radius:2px;width:70%"></div>
+        </div>
+      </div>
+      <div style="background:#1e293b;padding:8px;border-radius:4px;margin-top:5px;">
+        <div style="color:#94a3b8;font-size:9px;margin-bottom:3px;">AI NARRATIVE</div>
+        <div style="color:#c4b5fd;font-size:9px;">Aetna is systematically underpaying office visits by 35%+ across all E&M codes. BC/BS shows the most severe individual underpayments on surgical procedures...</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Top-down linear</h3>
+      <p>KPI cards → underpayment table + payer chart side-by-side → AI narrative at bottom. Simple scan path, easy to demo by scrolling.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0f172a; padding: 16px; border-radius: 6px; font-size: 11px; color: #e2e8f0;">
+      <div style="display:grid; grid-template-columns: 260px 1fr; gap:8px; height:140px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="background:#1e293b;padding:8px;border-radius:4px;flex:1;">
+            <div style="color:#fbbf24;font-size:9px;">BILLER SCORE</div>
+            <div style="font-size:22px;font-weight:bold;color:#fbbf24;text-align:center;margin-top:4px;">67</div>
+            <div style="color:#94a3b8;font-size:8px;text-align:center;">out of 100</div>
+          </div>
+          <div style="background:#1e293b;padding:6px;border-radius:4px;">
+            <div style="color:#60a5fa;font-size:9px;">Expected $84,200</div>
+            <div style="color:#34d399;font-size:9px;">Collected $71,340</div>
+            <div style="color:#f87171;font-size:9px;">Leakage $12,860 (15%)</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="background:#1e293b;padding:8px;border-radius:4px;flex:1;">
+            <div style="color:#94a3b8;font-size:9px;margin-bottom:4px;">UNDERPAYMENT TABLE</div>
+            <div style="color:#f87171;font-size:9px;">Aetna / 99213 · −38% · $4,200</div>
+            <div style="color:#f87171;font-size:9px;">BC/BS / 30520 · −70% · $3,100</div>
+            <div style="color:#fbbf24;font-size:9px;">ALPHA / 99204 · −21% · $890</div>
+          </div>
+          <div style="background:#1e293b;padding:8px;border-radius:4px;">
+            <div style="color:#c4b5fd;font-size:9px;">AI: Aetna underpays E&M codes by 35%+ systematically. Two payers account for 87% of leakage...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Score-first sidebar</h3>
+      <p>Biller score + KPIs anchored on the left, underpayment table + AI narrative on the right. Score is the first thing judges see.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0f172a; padding: 16px; border-radius: 6px; font-size: 11px; color: #e2e8f0;">
+      <div style="background:#1e293b;padding:8px;border-radius:4px;margin-bottom:6px;display:flex;gap:8px;align-items:center;">
+        <span style="color:#94a3b8;font-size:9px;">Upload</span>
+        <span style="color:#4b5563;">·</span>
+        <span style="color:#3b82f6;font-size:9px;font-weight:bold;border-bottom:1px solid #3b82f6;">Overview</span>
+        <span style="color:#4b5563;">·</span>
+        <span style="color:#94a3b8;font-size:9px;">By Payer</span>
+        <span style="color:#4b5563;">·</span>
+        <span style="color:#94a3b8;font-size:9px;">By CPT</span>
+        <span style="color:#4b5563;">·</span>
+        <span style="color:#94a3b8;font-size:9px;">AI Report</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px;margin-bottom:6px;">
+        <div style="background:#1e293b;padding:5px;border-radius:4px;text-align:center;">
+          <div style="color:#60a5fa;font-size:8px;">EXPECTED</div><div style="font-weight:bold;font-size:11px;">$84,200</div>
+        </div>
+        <div style="background:#1e293b;padding:5px;border-radius:4px;text-align:center;">
+          <div style="color:#34d399;font-size:8px;">COLLECTED</div><div style="font-weight:bold;font-size:11px;">$71,340</div>
+        </div>
+        <div style="background:#1e293b;padding:5px;border-radius:4px;text-align:center;">
+          <div style="color:#f87171;font-size:8px;">LEAKAGE</div><div style="font-weight:bold;font-size:11px;">15.3%</div>
+        </div>
+        <div style="background:#1e293b;padding:5px;border-radius:4px;text-align:center;">
+          <div style="color:#fbbf24;font-size:8px;">SCORE</div><div style="font-weight:bold;font-size:11px;">67/100</div>
+        </div>
+      </div>
+      <div style="background:#1e293b;padding:8px;border-radius:4px;height:50px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:9px;">
+        [Tab content area — varies by selected tab]
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Tabbed sections</h3>
+      <p>Persistent KPI bar at top, tabs below: Overview / By Payer / By CPT / AI Report. Deepest UX, most navigable — but more to build in 24hrs.</p>
+    </div>
+  </div>
+
+</div>
