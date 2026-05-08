@@ -1,5 +1,5 @@
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
 
 function barColor(pct) {
@@ -37,11 +37,14 @@ export default function PayerChart({ payers }) {
             contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
             labelStyle={{ color: '#f1f5f9' }}
           />
-          <Bar dataKey="variance_pct" radius={[0, 4, 4, 0]}>
-            {data.map((entry, i) => (
-              <Cell key={i} fill={barColor(entry.variance_pct)} />
-            ))}
-          </Bar>
+          <Bar
+            dataKey="variance_pct"
+            radius={[0, 4, 4, 0]}
+            shape={(props) => {
+              const { x, y, width, height, payload } = props
+              return <rect x={x} y={y} width={width} height={height} rx={4} fill={barColor(payload.variance_pct)} />
+            }}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
