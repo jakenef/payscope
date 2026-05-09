@@ -10,6 +10,7 @@ from ai import generate_narrative
 from columns import normalize_columns
 from chat import chat_about_analysis
 from benchmarks import get_benchmarks, SPECIALTY_BASELINES, STATE_ADJUSTMENTS, COHORT_SIZES, _adjust
+from contracts import parse_contract
 
 load_dotenv()
 
@@ -42,6 +43,7 @@ async def analyze(
     file: UploadFile = File(...),
     specialty: str | None = Form(None),
     state: str | None = Form(None),
+    contracts: str | None = Form(None),  # JSON-encoded list of {payer_name, rates: [{cpt, allowed_amount}]}
 ):
     contents = await file.read()
     try:
@@ -54,8 +56,10 @@ async def analyze(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
+    contract_lookup = _build_contract_lookup(contracts)
+
     try:
-        result = analyze_claims(df)
+        result = analyze_claims(df, contract_lookup=contract_lookup)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
@@ -64,6 +68,47 @@ async def analyze(
     result["ai_narrative"] = generate_narrative(result)
     result["benchmarks"] = get_benchmarks(specialty, state, result["summary"])
     return result
+
+
+def _build_contract_lookup(contracts_json: str | None) -> dict[tuple[str, str], float]:
+    """Flatten the user's contracts into {(normalized_payer, cpt): allowed_amount}."""
+    if not contracts_json:
+        return {}
+    try:
+        parsed = __import__("json").loads(contracts_json)
+    except Exception:
+        return {}
+    lookup = {}
+    for c in parsed or []:
+        payer_key = (c.get("payer_name") or "").strip().lower()
+        if not payer_key:
+            continue
+        for r in c.get("rates") or []:
+            cpt = str(r.get("cpt") or "").strip()
+            allowed = r.get("allowed_amount")
+            if cpt and allowed is not None:
+                try:
+                    lookup[(payer_key, cpt)] = float(allowed)
+                except (TypeError, ValueError):
+                    continue
+    return lookup
+
+
+@app.post("/api/contracts/parse")
+async def contracts_parse(file: UploadFile = File(...)):
+    """Extract a participating-provider agreement PDF into structured form. No persistence."""
+    name = (file.filename or "").lower()
+    if not name.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF uploads supported.")
+    contents = await file.read()
+    try:
+        contract = parse_contract(contents)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Parse failed: {e}")
+    contract["raw_filename"] = file.filename
+    return contract
 
 
 @app.get("/api/benchmark-options")

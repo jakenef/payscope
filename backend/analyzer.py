@@ -3,10 +3,14 @@ from rates import RATES
 
 MEDICARE_FLAG_THRESHOLD = 0.85
 DOWNCODE_FLAG_THRESHOLD = 0.80
+CONTRACTED_FLAG_THRESHOLD = 0.90
 
 
-def enrich_claims(df: pd.DataFrame) -> pd.DataFrame:
-    """Add per-claim derived columns; drop rows with unknown CPT or invalid amounts."""
+def enrich_claims(df: pd.DataFrame, contract_lookup: dict | None = None) -> pd.DataFrame:
+    """Add per-claim derived columns; drop rows with unknown CPT or invalid amounts.
+
+    contract_lookup: optional {(payer_lower, cpt): allowed_amount} for contracted-rate comparison.
+    """
     df = df.copy()
     df = df.assign(
         cpt=df["cpt"].astype(str).str.strip(),
@@ -28,12 +32,36 @@ def enrich_claims(df: pd.DataFrame) -> pd.DataFrame:
         downcode_gap=(df["charged"] - df["paid"]).round(2),
         medicare_gap=(df["paid"] - df["medicare_expected"]).round(2),
     )
-    df = df.assign(
-        flagged=(
-            (df["medicare_pct"] < MEDICARE_FLAG_THRESHOLD * 100)
-            | (df["downcode_pct"] < DOWNCODE_FLAG_THRESHOLD * 100)
-        )
+
+    # Contracted-rate enrichment (only if we have contracts AND the row's payer matches)
+    if contract_lookup:
+        def _lookup(row):
+            payer = str(row.get("ptype") or "").strip().lower()
+            return contract_lookup.get((payer, row["cpt"]))
+        df["contracted_expected"] = df.apply(_lookup, axis=1)
+        has_contract = df["contracted_expected"].notna()
+        df["contracted_pct"] = pd.NA
+        df["contracted_gap"] = pd.NA
+        df.loc[has_contract, "contracted_pct"] = (
+            df.loc[has_contract, "paid"] / df.loc[has_contract, "contracted_expected"] * 100
+        ).round(1)
+        df.loc[has_contract, "contracted_gap"] = (
+            df.loc[has_contract, "paid"] - df.loc[has_contract, "contracted_expected"]
+        ).round(2)
+    else:
+        df["contracted_expected"] = pd.NA
+        df["contracted_pct"] = pd.NA
+        df["contracted_gap"] = pd.NA
+
+    # Flag rule: existing two thresholds OR (we have a contracted rate AND paid is below it)
+    base_flag = (
+        (df["medicare_pct"] < MEDICARE_FLAG_THRESHOLD * 100)
+        | (df["downcode_pct"] < DOWNCODE_FLAG_THRESHOLD * 100)
     )
+    contracted_flag = df["contracted_pct"].notna() & (
+        df["contracted_pct"] < CONTRACTED_FLAG_THRESHOLD * 100
+    )
+    df["flagged"] = base_flag | contracted_flag
     return df
 
 
@@ -51,9 +79,9 @@ def compute_biller_score(
     return int(max(0, min(100, round(raw))))
 
 
-def analyze_claims(df: pd.DataFrame) -> dict:
+def analyze_claims(df: pd.DataFrame, contract_lookup: dict | None = None) -> dict:
     """Full analysis pipeline: enrich → aggregate → score. Returns JSON-serializable dict."""
-    enriched = enrich_claims(df)
+    enriched = enrich_claims(df, contract_lookup=contract_lookup)
 
     if enriched.empty:
         raise ValueError("No valid claims found with recognized CPT codes and non-zero amounts.")
@@ -66,6 +94,25 @@ def analyze_claims(df: pd.DataFrame) -> dict:
     leakage_dollars = round(total_medicare_expected - total_paid, 2)
     leakage_pct = round(leakage_dollars / total_medicare_expected * 100, 1) if total_medicare_expected > 0 else 0.0
     biller_score = compute_biller_score(total_paid, total_medicare_expected, flagged_claims, total_claims)
+
+    # Contracted-rate aggregates: only counts claims where we had a contract entry
+    has_contract = enriched["contracted_expected"].notna()
+    covered = enriched[has_contract]
+    if not covered.empty:
+        total_contracted_expected = float(covered["contracted_expected"].sum())
+        total_paid_under_contract = float(covered["paid"].sum())
+        contracted_leakage_dollars = round(total_contracted_expected - total_paid_under_contract, 2)
+        contracted_leakage_pct = (
+            round(contracted_leakage_dollars / total_contracted_expected * 100, 1)
+            if total_contracted_expected > 0 else 0.0
+        )
+        claims_with_contract = int(len(covered))
+    else:
+        total_contracted_expected = 0.0
+        total_paid_under_contract = 0.0
+        contracted_leakage_dollars = 0.0
+        contracted_leakage_pct = 0.0
+        claims_with_contract = 0
 
     # Payer breakdown
     payer_agg = (
@@ -97,9 +144,20 @@ def analyze_claims(df: pd.DataFrame) -> dict:
     flagged_rows = (
         enriched[enriched["flagged"]]
         .sort_values("medicare_gap")
-        .head(50)[["cpt", "description", "ptype", "charged", "paid", "medicare_expected", "downcode_pct", "medicare_pct", "medicare_gap"]]
+        .head(50)[[
+            "cpt", "description", "ptype", "charged", "paid",
+            "medicare_expected", "downcode_pct", "medicare_pct", "medicare_gap",
+            "contracted_expected", "contracted_pct", "contracted_gap",
+        ]]
         .rename(columns={"ptype": "payer"})
     )
+    # Convert NaN/NA to None so JSON output is clean (pandas mixed-type cols can leak NaN)
+    flagged_records = []
+    for record in flagged_rows.to_dict(orient="records"):
+        flagged_records.append({
+            k: (None if (v is None or (isinstance(v, float) and v != v) or pd.isna(v)) else v)
+            for k, v in record.items()
+        })
 
     date_range = None
     if "date" in enriched.columns:
@@ -120,8 +178,12 @@ def analyze_claims(df: pd.DataFrame) -> dict:
             "total_claims": total_claims,
             "flagged_claims": flagged_claims,
             "date_range": date_range,
+            "total_contracted_expected": round(total_contracted_expected, 2),
+            "contracted_leakage_dollars": contracted_leakage_dollars,
+            "contracted_leakage_pct": contracted_leakage_pct,
+            "claims_with_contract": claims_with_contract,
         },
         "payer_breakdown": payer_agg.to_dict(orient="records"),
-        "underpayment_table": flagged_rows.to_dict(orient="records"),
+        "underpayment_table": flagged_records,
         "cpt_breakdown": cpt_agg.to_dict(orient="records"),
     }

@@ -253,15 +253,24 @@ export default function LandingContent({ onPlanCta }) {
         </div>
       </div>
 
-      {/* ── Pricing ─────────────────────────────────── */}
-      <div style={{ marginBottom: '72px' }}>
-        <div style={{ textAlign: 'center' }}>
+      {/* ── Pricing + FAQ side-by-side ─────────────── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(320px, 420px) minmax(0, 1fr)',
+        gap: '48px',
+        marginBottom: '80px',
+        alignItems: 'start',
+      }}>
+
+      {/* Pricing column */}
+      <div>
+        <div>
           <SectionLabel>Simple, transparent pricing</SectionLabel>
           <SectionHeading>
             One plan. One price.<br />Pays for itself on the first audit.
           </SectionHeading>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
           <div style={{ width: '100%', maxWidth: '380px' }}>
           {PLANS.map(({ name, price, badge, desc, features, cta, highlight }) => (
             <div key={name} className="panel" style={{
@@ -370,15 +379,15 @@ export default function LandingContent({ onPlanCta }) {
         </div>
       </div>
 
-      {/* ── FAQ ─────────────────────────────────────── */}
-      <div style={{ marginBottom: '80px' }}>
-        <div style={{ textAlign: 'center' }}>
+      {/* FAQ column */}
+      <div>
+        <div>
           <SectionLabel>Frequently asked questions</SectionLabel>
           <SectionHeading>
-            Everything independent practices<br />ask before getting started.
+            Everything independent practices ask before getting started.
           </SectionHeading>
         </div>
-        <div style={{ maxWidth: '680px', margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+        <div style={{ borderTop: '1px solid var(--border)' }}>
           {FAQS.map(({ q, a }, i) => (
             <div key={i} style={{ borderBottom: '1px solid var(--border)' }}>
               <button
@@ -434,6 +443,9 @@ export default function LandingContent({ onPlanCta }) {
           ))}
         </div>
       </div>
+
+      </div>
+      {/* end pricing+faq grid */}
 
     </div>
   )

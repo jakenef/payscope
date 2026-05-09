@@ -11,9 +11,11 @@ import LandingContent from "./components/LandingContent";
 import Hero from "./components/Hero";
 import UserMenu from "./components/UserMenu";
 import BenchmarkPanel from "./components/BenchmarkPanel";
+import ContractsPanel from "./components/ContractsPanel";
 import Footer from "./components/Footer";
 import AuthModal from "./auth/AuthModal";
 import { useAuth } from "./auth/AuthContext";
+import { loadContracts } from "./contracts/store";
 
 export default function App() {
   const { isAuthed, user } = useAuth();
@@ -44,6 +46,7 @@ export default function App() {
       const result = await analyzeCSV(file, {
         specialty: user?.specialty,
         state: user?.state,
+        contracts: loadContracts(user?.id),
       });
       setData(result);
       setStatus("done");
@@ -165,75 +168,78 @@ export default function App() {
             <div
               className="fade-up"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                paddingTop: "56px",
+                paddingTop: "40px",
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+                gap: "20px",
+                maxWidth: "1080px",
+                margin: "0 auto",
+                alignItems: "start",
               }}
             >
-              <div
-                className="panel"
-                style={{ width: "100%", maxWidth: "520px" }}
-              >
-                <div className="panel-header">
-                  Claims Analysis
-                  <span className="panel-tag">Upload to begin</span>
+              <div>
+                <div className="panel">
+                  <div className="panel-header">
+                    Claims Analysis
+                    <span className="panel-tag">Upload to begin</span>
+                  </div>
+                  <div style={{ padding: "24px 22px 22px" }}>
+                    <p
+                      style={{
+                        fontFamily: "var(--font-sans)",
+                        fontSize: "0.8rem",
+                        color: "var(--text-muted)",
+                        lineHeight: 1.6,
+                        marginBottom: "20px",
+                      }}
+                    >
+                      Upload a CSV or Excel file of submitted claims. Columns are
+                      auto-detected, and underpayments and downcoding are
+                      evaluated against CMS Medicare benchmark rates.
+                    </p>
+                    <UploadZone onUpload={handleUpload} />
+                  </div>
                 </div>
-                <div style={{ padding: "28px 24px 24px" }}>
-                  <p
+
+                {status === "error" && (
+                  <div
                     style={{
+                      marginTop: "10px",
+                      padding: "10px 14px",
+                      background: "var(--red-bg)",
+                      border: "1px solid var(--red)",
                       fontFamily: "var(--font-sans)",
-                      fontSize: "0.8rem",
-                      color: "var(--text-muted)",
-                      lineHeight: 1.6,
-                      marginBottom: "20px",
+                      fontSize: "0.78rem",
+                      color: "var(--red)",
                     }}
                   >
-                    Upload a CSV or Excel file of submitted claims. Columns are
-                    auto-detected, and underpayments and downcoding are
-                    evaluated against CMS Medicare benchmark rates.
-                  </p>
-                  <UploadZone onUpload={handleUpload} />
-                </div>
-              </div>
+                    {error}
+                  </div>
+                )}
 
-              {status === "error" && (
                 <div
                   style={{
-                    width: "100%",
-                    maxWidth: "520px",
-                    marginTop: "10px",
-                    padding: "10px 14px",
-                    background: "var(--red-bg)",
-                    border: "1px solid var(--red)",
+                    marginTop: "20px",
+                    display: "flex",
+                    gap: "12px",
+                    flexWrap: "wrap",
                     fontFamily: "var(--font-sans)",
-                    fontSize: "0.78rem",
-                    color: "var(--red)",
+                    fontSize: "0.62rem",
+                    fontWeight: 500,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "var(--text-dim)",
                   }}
                 >
-                  {error}
+                  <span>CMS Medicare Rates 2024</span>
+                  <span>·</span>
+                  <span>GPT-4o Analysis</span>
+                  <span>·</span>
+                  <span>No data retained</span>
                 </div>
-              )}
-
-              <div
-                style={{
-                  marginTop: "20px",
-                  display: "flex",
-                  gap: "12px",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "0.62rem",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--text-dim)",
-                }}
-              >
-                <span>CMS Medicare Rates 2024</span>
-                <span>·</span>
-                <span>GPT-4o Analysis</span>
-                <span>·</span>
-                <span>No data retained</span>
               </div>
+
+              <ContractsPanel />
             </div>
           )}
 

@@ -6,7 +6,7 @@ function pctColor(pct) {
   return '#52b788'
 }
 
-const headers = [
+const baseHeaders = [
   { key: 'cpt',               label: 'CPT' },
   { key: 'payer',             label: 'Payer' },
   { key: 'charged',           label: 'Charged' },
@@ -16,19 +16,32 @@ const headers = [
   { key: 'medicare_pct',      label: 'Paid / MCR' },
   { key: 'medicare_gap',      label: 'Gap' },
 ]
+const contractHeaders = [
+  { key: 'contracted_expected', label: 'Contracted' },
+  { key: 'contracted_pct',      label: 'Paid / Ctr' },
+]
 
-const fmt = (n) => `$${Number(n).toFixed(2)}`
+const fmt = (n) => n == null ? '—' : `$${Number(n).toFixed(2)}`
 
 export default function UnderpaymentTable({ rows }) {
   const [sortKey, setSortKey] = useState('medicare_gap')
   const [sortDir, setSortDir] = useState(1)
+
+  const hasContractData = rows.some((r) => r.contracted_expected != null)
+  const headers = hasContractData ? [...baseHeaders, ...contractHeaders] : baseHeaders
 
   const toggle = (key) => {
     if (sortKey === key) setSortDir(d => d * -1)
     else { setSortKey(key); setSortDir(1) }
   }
 
-  const sorted = [...rows].sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir)
+  const sorted = [...rows].sort((a, b) => {
+    const av = a[sortKey], bv = b[sortKey]
+    if (av == null && bv == null) return 0
+    if (av == null) return 1
+    if (bv == null) return -1
+    return (av - bv) * sortDir
+  })
 
   return (
     <div className="panel">
@@ -63,6 +76,17 @@ export default function UnderpaymentTable({ rows }) {
                 <td style={{ color: pctColor(row.downcode_pct), fontWeight: 500 }}>{row.downcode_pct}%</td>
                 <td style={{ color: pctColor(row.medicare_pct), fontWeight: 500 }}>{row.medicare_pct}%</td>
                 <td style={{ color: '#e05252', fontWeight: 600 }}>{fmt(row.medicare_gap)}</td>
+                {hasContractData && (
+                  <>
+                    <td style={{ color: 'var(--text-muted)' }}>{fmt(row.contracted_expected)}</td>
+                    <td style={{
+                      color: row.contracted_pct == null ? 'var(--text-dim)' : pctColor(row.contracted_pct),
+                      fontWeight: 500,
+                    }}>
+                      {row.contracted_pct == null ? '—' : `${row.contracted_pct}%`}
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>

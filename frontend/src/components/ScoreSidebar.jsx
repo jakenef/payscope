@@ -62,9 +62,13 @@ function fmt(n) {
 }
 
 export default function ScoreSidebar({ summary }) {
-  const { biller_score, total_medicare_expected, total_paid, leakage_dollars, leakage_pct, total_claims, flagged_claims } = summary
+  const {
+    biller_score, total_medicare_expected, total_paid, leakage_dollars, leakage_pct,
+    total_claims, flagged_claims,
+    claims_with_contract, contracted_leakage_dollars, contracted_leakage_pct,
+  } = summary
 
-  const kpis = [
+  const baseKpis = [
     { label: 'Expected',  value: fmt(total_medicare_expected), color: 'var(--primary-light)' },
     { label: 'Collected', value: fmt(total_paid),              color: 'var(--green)' },
     { label: 'Leakage',   value: fmt(leakage_dollars),         color: 'var(--red)' },
@@ -72,6 +76,20 @@ export default function ScoreSidebar({ summary }) {
     { label: 'Claims',    value: total_claims,                  color: 'var(--text-bright)' },
     { label: 'Flagged',   value: flagged_claims,                color: 'var(--amber)' },
   ]
+  const contractKpis = (claims_with_contract && claims_with_contract > 0) ? [
+    { label: 'Contract Claims', value: claims_with_contract, color: 'var(--text-bright)' },
+    {
+      label: 'Contract Leak',
+      value: fmt(contracted_leakage_dollars),
+      color: contracted_leakage_dollars > 0 ? 'var(--red)' : 'var(--green)',
+    },
+    {
+      label: 'Contract Rate',
+      value: `${contracted_leakage_pct}%`,
+      color: contracted_leakage_pct > 0 ? 'var(--red)' : 'var(--green)',
+    },
+  ] : []
+  const kpis = [...baseKpis, ...contractKpis]
 
   return (
     <div className="panel" style={{ minWidth: '210px', flexShrink: 0 }}>

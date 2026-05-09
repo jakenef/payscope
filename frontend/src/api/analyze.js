@@ -2,14 +2,17 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 /**
  * @param {File} file
- * @param {{ specialty?: string, state?: string }} [profile]
+ * @param {{ specialty?: string, state?: string, contracts?: object[] }} [opts]
  * @returns {Promise<object>} analysis result from /api/analyze
  */
-export async function analyzeCSV(file, profile = {}) {
+export async function analyzeCSV(file, opts = {}) {
   const formData = new FormData()
   formData.append('file', file)
-  if (profile.specialty) formData.append('specialty', profile.specialty)
-  if (profile.state) formData.append('state', profile.state)
+  if (opts.specialty) formData.append('specialty', opts.specialty)
+  if (opts.state) formData.append('state', opts.state)
+  if (opts.contracts && opts.contracts.length > 0) {
+    formData.append('contracts', JSON.stringify(opts.contracts))
+  }
 
   const response = await fetch(`${API_URL}/api/analyze`, {
     method: 'POST',

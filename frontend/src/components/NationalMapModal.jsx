@@ -59,7 +59,10 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
   useEffect(() => {
     if (!open || topology) return
     fetch('/us-states-10m.json')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`Map file ${r.status}`)
+        return r.json()
+      })
       .then(setTopology)
       .catch((e) => setError('Failed to load map: ' + e.message))
   }, [open, topology])
@@ -68,10 +71,16 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
   useEffect(() => {
     if (!open) return
     const sp = specialty || 'Other'
-    fetch(`${API_URL}/api/benchmarks/by-state?specialty=${encodeURIComponent(sp)}`)
-      .then((r) => r.json())
+    const url = `${API_URL}/api/benchmarks/by-state?specialty=${encodeURIComponent(sp)}`
+    fetch(url)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Backend ${r.status} from ${API_URL}`)
+        const d = await r.json()
+        if (!d || !d.states) throw new Error(`Backend returned no state data (got ${JSON.stringify(d).slice(0, 80)})`)
+        return d
+      })
       .then((d) => setStatesData(d.states))
-      .catch((e) => setError('Failed to load benchmarks: ' + e.message))
+      .catch((e) => setError(e.message))
   }, [open, specialty])
 
   // Esc to close
@@ -121,7 +130,12 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
       <div
         onClick={(e) => e.stopPropagation()}
         className="panel fade-up"
-        style={{ width: '100%', maxWidth: '1040px', maxHeight: '94vh', display: 'flex', flexDirection: 'column' }}
+        style={{
+          width: '100%', maxWidth: '1040px',
+          height: '94vh',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+        }}
       >
         <div className="panel-header">
           National benchmarks{specialty ? ` · ${specialty}` : ''}
@@ -130,8 +144,9 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
 
         {/* Metric toggle */}
         <div style={{
-          display: 'flex', gap: '6px', padding: '12px 16px',
+          display: 'flex', gap: '6px', padding: '10px 14px',
           borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
         }}>
           {METRICS.map((m) => (
             <button
@@ -151,13 +166,19 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
           ))}
         </div>
 
-        {/* Map + tooltip */}
-        <div style={{ position: 'relative', padding: '16px', overflow: 'hidden' }}>
+        {/* Map area — fills remaining vertical space */}
+        <div style={{
+          position: 'relative',
+          flex: 1, minHeight: 0,
+          padding: '12px 14px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
           {error && (
             <div style={{
               padding: '12px', background: 'var(--red-bg)',
               border: '1px solid var(--red)', color: 'var(--red)',
               fontFamily: 'var(--font-sans)', fontSize: '0.78rem',
+              maxWidth: '500px',
             }}>{error}</div>
           )}
           {!error && (!topology || !statesData) && (
@@ -172,7 +193,12 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
           {!error && topology && statesData && (
             <svg
               viewBox="0 0 900 500"
-              style={{ width: '100%', height: 'auto', display: 'block' }}
+              preserveAspectRatio="xMidYMid meet"
+              style={{
+                width: '100%', height: '100%',
+                maxWidth: '100%', maxHeight: '100%',
+                display: 'block',
+              }}
               onMouseLeave={() => setHovered(null)}
             >
               {features.map((f) => {
@@ -260,39 +286,42 @@ export default function NationalMapModal({ open, onClose, specialty, userState }
             </div>
           )}
 
-          {/* Legend */}
-          {!error && topology && statesData && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              marginTop: '10px',
-              fontFamily: 'var(--font-sans)', fontSize: '0.66rem',
-              color: 'var(--text-muted)',
-            }}>
-              <span style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                {activeMetric.label} ({activeMetric.higher ? 'higher better' : 'lower better'})
-              </span>
-              <div style={{
-                flex: 1, maxWidth: '260px', height: '8px',
-                background: 'linear-gradient(to right, #e05252, #f0a050, #52b788)',
-              }} />
-              <span>worse</span>
-              <span style={{ marginLeft: 'auto' }}>better</span>
-              {userState && (
-                <span style={{
-                  marginLeft: '12px',
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  color: 'var(--text-bright)',
-                }}>
-                  <span style={{
-                    display: 'inline-block', width: '10px', height: '10px',
-                    border: '2px solid #d8edf0', background: 'transparent',
-                  }} />
-                  Your state
-                </span>
-              )}
-            </div>
-          )}
         </div>
+
+        {/* Legend — fixed row at the bottom of the panel */}
+        {!error && topology && statesData && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '12px',
+            padding: '10px 14px',
+            borderTop: '1px solid var(--border)',
+            fontFamily: 'var(--font-sans)', fontSize: '0.66rem',
+            color: 'var(--text-muted)',
+            flexShrink: 0,
+          }}>
+            <span style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {activeMetric.label} ({activeMetric.higher ? 'higher better' : 'lower better'})
+            </span>
+            <div style={{
+              flex: 1, maxWidth: '260px', height: '8px',
+              background: 'linear-gradient(to right, #e05252, #f0a050, #52b788)',
+            }} />
+            <span>worse</span>
+            <span style={{ marginLeft: 'auto' }}>better</span>
+            {userState && (
+              <span style={{
+                marginLeft: '12px',
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                color: 'var(--text-bright)',
+              }}>
+                <span style={{
+                  display: 'inline-block', width: '10px', height: '10px',
+                  border: '2px solid #d8edf0', background: 'transparent',
+                }} />
+                Your state
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
