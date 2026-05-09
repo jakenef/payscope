@@ -44,21 +44,19 @@ const STEPS = [
 
 const PLANS = [
   {
-    name: 'Pro',
-    price: '$99',
-    badge: 'Most Popular',
-    desc: 'Unlimited claims, full analytics, biller scorecard, email alerts',
-    features: ['1 provider included', '3 months claims history', 'Basic dashboard', 'Community support', 'Unlimited claims', 'Full analytics suite', 'Biller scorecard', 'Email alerts on flagged claims', 'CSV & EHR imports'],
-    cta: 'Start Free Trial',
+    name: 'Payscope',
+    price: '$50',
+    desc: 'Everything you need to audit your billing — one flat price.',
+    features: [
+      'Unlimited claims uploads',
+      'CMS Medicare benchmark comparison',
+      'AI-powered narrative + chat',
+      'Biller scorecard',
+      'CSV & Excel imports',
+      'No data retention',
+    ],
+    cta: 'Get started',
     highlight: true,
-  },
-  {
-    name: 'Enterprise',
-    price: '$299',
-    desc: 'Multi-provider, API access, dedicated support, custom payer rate uploads',
-    features: ['Multi-provider support', 'API access', 'Dedicated support', 'Custom payer rate uploads', 'SLA guarantee'],
-    cta: 'Contact Sales',
-    highlight: false,
   },
 ]
 
@@ -112,7 +110,7 @@ function SectionHeading({ children }) {
   )
 }
 
-export default function LandingContent() {
+export default function LandingContent({ onPlanCta }) {
   const [openFaq, setOpenFaq] = useState(null)
 
   return (
@@ -260,10 +258,11 @@ export default function LandingContent() {
         <div style={{ textAlign: 'center' }}>
           <SectionLabel>Simple, transparent pricing</SectionLabel>
           <SectionHeading>
-            Start free. Upgrade when Payscope<br />has already paid for itself.
+            One plan. One price.<br />Pays for itself on the first audit.
           </SectionHeading>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', alignItems: 'start', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: '380px' }}>
           {PLANS.map(({ name, price, badge, desc, features, cta, highlight }) => (
             <div key={name} className="panel" style={{
               border: `1px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
@@ -350,19 +349,24 @@ export default function LandingContent() {
                     </li>
                   ))}
                 </ul>
-                <button className="btn" style={{
-                  width: '100%',
-                  textAlign: 'center',
-                  padding: '8px 14px',
-                  background: highlight ? 'rgba(42,157,143,0.12)' : 'transparent',
-                  borderColor: highlight ? 'var(--primary)' : 'var(--border-mid)',
-                  color: highlight ? 'var(--primary-light)' : 'var(--text-bright)',
-                }}>
+                <button
+                  className="btn"
+                  onClick={() => onPlanCta?.(name)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'center',
+                    padding: '8px 14px',
+                    background: highlight ? 'rgba(42,157,143,0.12)' : 'transparent',
+                    borderColor: highlight ? 'var(--primary)' : 'var(--border-mid)',
+                    color: highlight ? 'var(--primary-light)' : 'var(--text-bright)',
+                  }}
+                >
                   {cta}
                 </button>
               </div>
             </div>
           ))}
+          </div>
         </div>
       </div>
 

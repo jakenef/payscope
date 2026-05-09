@@ -1,0 +1,80 @@
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { supabase } from './supabase'
+
+const AuthContext = createContext(null)
+
+function shapeUser(supaUser) {
+  if (!supaUser) return null
+  const meta = supaUser.user_metadata || {}
+  const email = supaUser.email || ''
+  const name =
+    meta.name ||
+    meta.full_name ||
+    (email.split('@')[0] || 'You')
+      .replace(/[._-]+/g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ')
+
+  return {
+    id: supaUser.id,
+    email,
+    name,
+    plan: 'Free',
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
+      setUser(shapeUser(session?.user))
+      setLoading(false)
+    })
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(shapeUser(session?.user))
+    })
+
+    return () => {
+      mounted = false
+      sub?.subscription?.unsubscribe()
+    }
+  }, [])
+
+  const signIn = useCallback(async ({ email, password }) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+  }, [])
+
+  const signUp = useCallback(async ({ email, password, name }) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    })
+    if (error) throw error
+  }, [])
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut()
+  }, [])
+
+  return (
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, isAuthed: !!user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
+}

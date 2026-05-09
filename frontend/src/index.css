@@ -186,6 +186,54 @@ body {
   margin-left: 1px;
 }
 
+/* ── Form inputs ────────────────────────────────── */
+input:focus {
+  border-color: var(--primary) !important;
+}
+
+/* ── Hero ───────────────────────────────────────── */
+.hero-screenshot {
+  border: 1px solid var(--border-mid);
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.55),
+    0 8px 24px -8px rgba(42, 157, 143, 0.18);
+  background: var(--bg-panel);
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-screenshot-frame {
+  position: relative;
+  margin-top: 56px;
+  padding: 0;
+  background: linear-gradient(180deg, rgba(42,157,143,0.06), transparent 60%);
+}
+
+.hero-screenshot-frame::before {
+  content: '';
+  position: absolute;
+  inset: -40px -60px;
+  background: radial-gradient(ellipse at 50% 30%, rgba(42, 157, 143, 0.18) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-screenshot-frame > * { position: relative; z-index: 1; }
+
+.btn-primary {
+  background: var(--primary);
+  color: rgba(0,0,0,0.9);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-light);
+  color: rgba(0,0,0,0.9);
+}
+
 /* ── Scrollbar ──────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }

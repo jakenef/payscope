@@ -8,11 +8,20 @@ import NarrativePanel from './components/NarrativePanel'
 import ChatPanel from './components/ChatPanel'
 import ColumnMappingPill from './components/ColumnMappingPill'
 import LandingContent from './components/LandingContent'
+import Hero from './components/Hero'
+import UserMenu from './components/UserMenu'
+import AuthModal from './auth/AuthModal'
+import { useAuth } from './auth/AuthContext'
 
 export default function App() {
+  const { isAuthed } = useAuth()
   const [status, setStatus] = useState('idle')
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState('signin')
+
+  const openAuth = (mode = 'signin') => { setAuthMode(mode); setAuthOpen(true) }
 
   const handleUpload = async (file) => {
     setStatus('loading')
@@ -68,129 +77,145 @@ export default function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {(status === 'done' || status === 'error') && (
+          {isAuthed && (status === 'done' || status === 'error') && (
             <button className="btn" onClick={handleBack}>
               ← New Analysis
             </button>
           )}
-          <StatusBadge status={status} />
+          {isAuthed && <StatusBadge status={status} />}
+          <UserMenu onSignInClick={() => openAuth('signin')} />
         </div>
       </header>
 
-      {/* ── Main ────────────────────────────────── */}
-      <main style={{ maxWidth: '1480px', margin: '0 auto', padding: '28px 24px 48px' }}>
+      {/* ── Marketing landing (logged out) ──────── */}
+      {!isAuthed && (
+        <main style={{ maxWidth: '1480px', margin: '0 auto', padding: '0 24px 48px' }}>
+          <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Hero
+              onPrimaryCta={() => openAuth('signup')}
+              onSecondaryCta={() => openAuth('signin')}
+            />
+            <LandingContent onPlanCta={() => openAuth('signup')} />
+          </div>
+        </main>
+      )}
 
-        {/* Upload / idle */}
-        {(status === 'idle' || status === 'error') && (
-          <div className="fade-up" style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            paddingTop: '56px',
-          }}>
-            <div className="panel" style={{ width: '100%', maxWidth: '520px' }}>
-              <div className="panel-header">
-                Claims Analysis
-                <span className="panel-tag">Upload to begin</span>
-              </div>
-              <div style={{ padding: '28px 24px 24px' }}>
-                <div style={{ marginBottom: '20px' }}>
+      {/* ── App (authed) ────────────────────────── */}
+      {isAuthed && (
+        <main style={{ maxWidth: '1480px', margin: '0 auto', padding: '28px 24px 48px' }}>
+
+          {(status === 'idle' || status === 'error') && (
+            <div className="fade-up" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              paddingTop: '56px',
+            }}>
+              <div className="panel" style={{ width: '100%', maxWidth: '520px' }}>
+                <div className="panel-header">
+                  Claims Analysis
+                  <span className="panel-tag">Upload to begin</span>
+                </div>
+                <div style={{ padding: '28px 24px 24px' }}>
                   <p style={{
                     fontFamily: 'var(--font-sans)', fontSize: '0.8rem',
                     color: 'var(--text-muted)', lineHeight: 1.6,
+                    marginBottom: '20px',
                   }}>
                     Upload a CSV or Excel file of submitted claims. Columns are auto-detected,
                     and underpayments and downcoding are evaluated against CMS Medicare benchmark rates.
                   </p>
+                  <UploadZone onUpload={handleUpload} />
                 </div>
-                <UploadZone onUpload={handleUpload} />
               </div>
-            </div>
 
-            {status === 'error' && (
+              {status === 'error' && (
+                <div style={{
+                  width: '100%', maxWidth: '520px', marginTop: '10px',
+                  padding: '10px 14px',
+                  background: 'var(--red-bg)',
+                  border: '1px solid var(--red)',
+                  fontFamily: 'var(--font-sans)', fontSize: '0.78rem',
+                  color: 'var(--red)',
+                }}>
+                  {error}
+                </div>
+              )}
+
               <div style={{
-                width: '100%', maxWidth: '520px', marginTop: '10px',
-                padding: '10px 14px',
-                background: 'var(--red-bg)',
-                border: '1px solid var(--red)',
-                fontFamily: 'var(--font-sans)', fontSize: '0.78rem',
-                color: 'var(--red)',
+                marginTop: '20px', display: 'flex', gap: '12px',
+                fontFamily: 'var(--font-sans)', fontSize: '0.62rem',
+                fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: 'var(--text-dim)',
               }}>
-                {error}
+                <span>CMS Medicare Rates 2024</span>
+                <span>·</span>
+                <span>GPT-4o Analysis</span>
+                <span>·</span>
+                <span>No data retained</span>
               </div>
-            )}
-
-            <div style={{
-              marginTop: '20px', display: 'flex', gap: '12px',
-              fontFamily: 'var(--font-sans)', fontSize: '0.62rem',
-              fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: 'var(--text-dim)',
-            }}>
-              <span>CMS Medicare Rates 2024</span>
-              <span>·</span>
-              <span>GPT-4o Analysis</span>
-              <span>·</span>
-              <span>No data retained</span>
             </div>
+          )}
 
-            <LandingContent />
-          </div>
-        )}
-
-        {/* Loading */}
-        {status === 'loading' && (
-          <div className="fade-up" style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', minHeight: 'calc(100vh - 160px)', gap: '16px',
-          }}>
-            <div style={{
-              fontFamily: 'var(--font-serif)', fontSize: '1.5rem',
-              color: 'var(--text-bright)', letterSpacing: '0.01em',
+          {status === 'loading' && (
+            <div className="fade-up" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', minHeight: 'calc(100vh - 160px)', gap: '16px',
             }}>
-              Analyzing claims data
-              <span className="blink-cursor" />
+              <div style={{
+                fontFamily: 'var(--font-serif)', fontSize: '1.5rem',
+                color: 'var(--text-bright)', letterSpacing: '0.01em',
+              }}>
+                Analyzing claims data
+                <span className="blink-cursor" />
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-sans)', fontSize: '0.72rem',
+                color: 'var(--text-muted)', letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}>
+                Comparing against CMS Medicare benchmark rates
+              </div>
             </div>
-            <div style={{
-              fontFamily: 'var(--font-sans)', fontSize: '0.72rem',
-              color: 'var(--text-muted)', letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-            }}>
-              Comparing against CMS Medicare benchmark rates
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Dashboard */}
-        {status === 'done' && data && (
-          <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {data.column_mapping_ai_inferred && (
-              <ColumnMappingPill
-                mapping={data.column_mapping}
-                aiInferred={data.column_mapping_ai_inferred}
-              />
-            )}
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-              <ScoreSidebar summary={data.summary} />
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
-                {data.underpayment_table.length > 0 ? (
-                  <UnderpaymentTable rows={data.underpayment_table} />
-                ) : (
-                  <div className="panel">
-                    <div className="panel-header">Audit Result</div>
-                    <div style={{ padding: '16px', fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--green)' }}>
-                      No flagged claims — all payments at or above threshold.
+          {status === 'done' && data && (
+            <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {data.column_mapping_ai_inferred && (
+                <ColumnMappingPill
+                  mapping={data.column_mapping}
+                  aiInferred={data.column_mapping_ai_inferred}
+                />
+              )}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <ScoreSidebar summary={data.summary} />
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
+                  {data.underpayment_table.length > 0 ? (
+                    <UnderpaymentTable rows={data.underpayment_table} />
+                  ) : (
+                    <div className="panel">
+                      <div className="panel-header">Audit Result</div>
+                      <div style={{ padding: '16px', fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--green)' }}>
+                        No flagged claims — all payments at or above threshold.
+                      </div>
                     </div>
-                  </div>
-                )}
-                {data.payer_breakdown.length > 0 && (
-                  <PayerChart payers={data.payer_breakdown} />
-                )}
+                  )}
+                  {data.payer_breakdown.length > 0 && (
+                    <PayerChart payers={data.payer_breakdown} />
+                  )}
+                </div>
+                <ChatPanel analysis={data} />
               </div>
-              <ChatPanel analysis={data} />
             </div>
-          </div>
-        )}
+          )}
 
-      </main>
+        </main>
+      )}
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode={authMode}
+      />
     </div>
   )
 }
