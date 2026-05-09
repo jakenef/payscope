@@ -30,7 +30,39 @@
 
 body {
   background-color: var(--bg);
-  background-image: radial-gradient(ellipse at 50% 0%, rgba(42, 157, 143, 0.07) 0%, transparent 60%);
+  background-image:
+    /* existing teal glow */
+    radial-gradient(ellipse at 50% 0%, rgba(42, 157, 143, 0.07) 0%, transparent 60%),
+    /* compass arc — top-left corner */
+    radial-gradient(circle at -8% -8%,
+      transparent 298px,
+      rgba(180, 208, 216, 0.045) 299px, rgba(180, 208, 216, 0.045) 301px,
+      transparent 302px,
+      transparent 498px,
+      rgba(180, 208, 216, 0.03) 499px, rgba(180, 208, 216, 0.03) 501px,
+      transparent 502px
+    ),
+    /* compass arc — bottom-right corner */
+    radial-gradient(circle at 108% 108%,
+      transparent 348px,
+      rgba(180, 208, 216, 0.04) 349px, rgba(180, 208, 216, 0.04) 351px,
+      transparent 352px,
+      transparent 548px,
+      rgba(180, 208, 216, 0.025) 549px, rgba(180, 208, 216, 0.025) 551px,
+      transparent 552px
+    ),
+    /* grid — horizontal lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 39px,
+      rgba(180, 208, 216, 0.03) 39px, rgba(180, 208, 216, 0.03) 40px
+    ),
+    /* grid — vertical lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 39px,
+      rgba(180, 208, 216, 0.03) 39px, rgba(180, 208, 216, 0.03) 40px
+    );
   color: var(--text);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -207,14 +239,13 @@ input:focus {
   position: relative;
   margin-top: 56px;
   padding: 0;
-  background: linear-gradient(180deg, rgba(42,157,143,0.06), transparent 60%);
 }
 
 .hero-screenshot-frame::before {
   content: '';
   position: absolute;
-  inset: -40px -60px;
-  background: radial-gradient(ellipse at 50% 30%, rgba(42, 157, 143, 0.18) 0%, transparent 65%);
+  inset: -120px -60px -40px;
+  background: radial-gradient(ellipse at 50% 42%, rgba(42, 157, 143, 0.11) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
 }

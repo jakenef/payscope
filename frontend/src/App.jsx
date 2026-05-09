@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { analyzeCSV } from "./api/analyze";
 import UploadZone from "./components/UploadZone";
 import AuditScoreHero from "./components/AuditScoreHero";
@@ -22,11 +22,20 @@ export default function App() {
   const [error, setError] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("signin");
+  const [page, setPage] = useState("landing");
+
+  useEffect(() => {
+    if (isAuthed) setPage("app");
+    else setPage("landing");
+  }, [isAuthed]);
 
   const openAuth = (mode = "signin") => {
     setAuthMode(mode);
     setAuthOpen(true);
   };
+
+  const goToApp = () => setPage("app");
+  const goToLanding = () => setPage("landing");
 
   const handleUpload = async (file) => {
     setStatus("loading");
@@ -69,7 +78,10 @@ export default function App() {
           height: "52px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+        <div
+          style={{ display: "flex", alignItems: "baseline", gap: "12px", cursor: isAuthed ? "pointer" : "default" }}
+          onClick={isAuthed ? goToLanding : undefined}
+        >
           <span
             style={{
               fontFamily: "var(--font-serif)",
@@ -95,18 +107,23 @@ export default function App() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {isAuthed && (status === "done" || status === "error") && (
+          {isAuthed && page === "landing" && (
+            <button className="btn" onClick={goToApp}>
+              Open App →
+            </button>
+          )}
+          {isAuthed && page === "app" && (status === "done" || status === "error") && (
             <button className="btn" onClick={handleBack}>
               ← New Analysis
             </button>
           )}
-          {isAuthed && <StatusBadge status={status} />}
+          {isAuthed && page === "app" && <StatusBadge status={status} />}
           <UserMenu onSignInClick={() => openAuth("signin")} />
         </div>
       </header>
 
-      {/* ── Marketing landing (logged out) ──────── */}
-      {!isAuthed && (
+      {/* ── Landing page (accessible to all) ───── */}
+      {page === "landing" && (
         <main
           style={{
             flex: 1,
@@ -125,16 +142,16 @@ export default function App() {
             }}
           >
             <Hero
-              onPrimaryCta={() => openAuth("signup")}
-              onSecondaryCta={() => openAuth("signin")}
+              onPrimaryCta={isAuthed ? goToApp : () => openAuth("signup")}
+              onSecondaryCta={isAuthed ? goToApp : () => openAuth("signin")}
             />
-            <LandingContent onPlanCta={() => openAuth("signup")} />
+            <LandingContent onPlanCta={isAuthed ? goToApp : () => openAuth("signup")} />
           </div>
         </main>
       )}
 
       {/* ── App (authed) ────────────────────────── */}
-      {isAuthed && (
+      {isAuthed && page === "app" && (
         <main
           style={{
             flex: 1,

@@ -1,0 +1,37 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5] [cursor=pointer]:
+      - generic [ref=e6]: Payscope
+      - generic [ref=e7]: Revenue Integrity
+    - generic [ref=e8]:
+      - generic [ref=e11]: Ready
+      - button "DU Dev User ▾" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]: DU
+        - generic [ref=e15]: Dev User
+        - generic [ref=e16]: ▾
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - text: Claims Analysis
+          - generic [ref=e21]: Upload to begin
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Upload a CSV or Excel file of submitted claims. Columns are auto-detected, and underpayments and downcoding are evaluated against CMS Medicare benchmark rates.
+          - generic [ref=e24] [cursor=pointer]:
+            - generic [ref=e25]: Drop CSV or Excel file here or click to browse
+            - generic [ref=e26]: Columns auto-detected · CSV, XLSX, XLS supported
+      - generic [ref=e27]:
+        - generic [ref=e28]: CMS Medicare Rates 2024
+        - generic [ref=e29]: ·
+        - generic [ref=e30]: GPT-4o Analysis
+        - generic [ref=e31]: ·
+        - generic [ref=e32]: No data retained
+  - contentinfo [ref=e33]:
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e36]: Payscope
+        - generic [ref=e37]: © 2026 · Revenue integrity for independent practices
+      - generic [ref=e38]:
+        - link "Contact us" [ref=e39] [cursor=pointer]:
+          - /url: mailto:hello@payscope.scalr.media?subject=Payscope%20inquiry
+        - generic [ref=e40]: hello@payscope.scalr.media
