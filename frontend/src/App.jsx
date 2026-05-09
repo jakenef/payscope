@@ -10,6 +10,7 @@ import LandingContent from './components/LandingContent'
 import Hero from './components/Hero'
 import UserMenu from './components/UserMenu'
 import BenchmarkPanel from './components/BenchmarkPanel'
+import Footer from './components/Footer'
 import AuthModal from './auth/AuthModal'
 import { useAuth } from './auth/AuthContext'
 
@@ -182,7 +183,7 @@ export default function App() {
 
           {status === 'done' && data && (
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-<div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                 <ScoreSidebar summary={data.summary} />
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
@@ -208,6 +209,8 @@ export default function App() {
 
         </main>
       )}
+
+      <Footer />
 
       <AuthModal
         open={authOpen}

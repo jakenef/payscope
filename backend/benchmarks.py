@@ -54,25 +54,74 @@ SPECIALTY_BASELINES = {
 }
 
 # State multipliers — payer mix and Medicaid expansion vary regionally.
-# Multiplier > 1.0 means the state runs hotter on that metric than national avg.
+# Multiplier > 1.0 means the state runs hotter on that metric than the national avg.
+# All 50 states + DC. Tighter payer markets (CA, NY, NJ, MA) underpay more;
+# southern/midwestern states with stronger commercial mix do a bit better.
 STATE_ADJUSTMENTS = {
+    "AL": {"biller_score": 1.02, "leakage_pct": 0.95, "payment_ratio_pct": 1.01},
+    "AK": {"biller_score": 1.05, "leakage_pct": 0.85, "payment_ratio_pct": 1.04},
+    "AZ": {"biller_score": 1.00, "leakage_pct": 1.02, "payment_ratio_pct": 1.00},
+    "AR": {"biller_score": 1.02, "leakage_pct": 0.93, "payment_ratio_pct": 1.01},
     "CA": {"biller_score": 0.97, "leakage_pct": 1.10, "payment_ratio_pct": 0.98},
-    "NY": {"biller_score": 0.95, "leakage_pct": 1.18, "payment_ratio_pct": 0.96},
-    "TX": {"biller_score": 1.02, "leakage_pct": 0.92, "payment_ratio_pct": 1.01},
+    "CO": {"biller_score": 1.01, "leakage_pct": 0.97, "payment_ratio_pct": 1.01},
+    "CT": {"biller_score": 0.98, "leakage_pct": 1.08, "payment_ratio_pct": 0.98},
+    "DE": {"biller_score": 1.00, "leakage_pct": 1.00, "payment_ratio_pct": 1.00},
+    "DC": {"biller_score": 0.96, "leakage_pct": 1.12, "payment_ratio_pct": 0.97},
     "FL": {"biller_score": 0.99, "leakage_pct": 1.05, "payment_ratio_pct": 0.99},
-    "IL": {"biller_score": 1.00, "leakage_pct": 1.00, "payment_ratio_pct": 1.00},
-    "PA": {"biller_score": 1.01, "leakage_pct": 0.98, "payment_ratio_pct": 1.01},
-    "OH": {"biller_score": 1.03, "leakage_pct": 0.94, "payment_ratio_pct": 1.02},
     "GA": {"biller_score": 1.01, "leakage_pct": 0.96, "payment_ratio_pct": 1.01},
-    "NC": {"biller_score": 1.02, "leakage_pct": 0.95, "payment_ratio_pct": 1.01},
+    "HI": {"biller_score": 1.00, "leakage_pct": 1.00, "payment_ratio_pct": 1.00},
+    "ID": {"biller_score": 1.04, "leakage_pct": 0.88, "payment_ratio_pct": 1.03},
+    "IL": {"biller_score": 1.00, "leakage_pct": 1.00, "payment_ratio_pct": 1.00},
+    "IN": {"biller_score": 1.02, "leakage_pct": 0.95, "payment_ratio_pct": 1.01},
+    "IA": {"biller_score": 1.04, "leakage_pct": 0.90, "payment_ratio_pct": 1.03},
+    "KS": {"biller_score": 1.03, "leakage_pct": 0.92, "payment_ratio_pct": 1.02},
+    "KY": {"biller_score": 1.01, "leakage_pct": 0.97, "payment_ratio_pct": 1.01},
+    "LA": {"biller_score": 0.99, "leakage_pct": 1.04, "payment_ratio_pct": 0.99},
+    "ME": {"biller_score": 1.02, "leakage_pct": 0.94, "payment_ratio_pct": 1.01},
+    "MD": {"biller_score": 0.98, "leakage_pct": 1.06, "payment_ratio_pct": 0.99},
+    "MA": {"biller_score": 0.96, "leakage_pct": 1.12, "payment_ratio_pct": 0.97},
     "MI": {"biller_score": 1.00, "leakage_pct": 0.99, "payment_ratio_pct": 1.00},
+    "MN": {"biller_score": 1.02, "leakage_pct": 0.96, "payment_ratio_pct": 1.02},
+    "MS": {"biller_score": 1.00, "leakage_pct": 1.00, "payment_ratio_pct": 1.00},
+    "MO": {"biller_score": 1.02, "leakage_pct": 0.94, "payment_ratio_pct": 1.02},
+    "MT": {"biller_score": 1.05, "leakage_pct": 0.85, "payment_ratio_pct": 1.04},
+    "NE": {"biller_score": 1.04, "leakage_pct": 0.89, "payment_ratio_pct": 1.03},
+    "NV": {"biller_score": 0.99, "leakage_pct": 1.04, "payment_ratio_pct": 0.99},
+    "NH": {"biller_score": 1.01, "leakage_pct": 0.97, "payment_ratio_pct": 1.01},
+    "NJ": {"biller_score": 0.96, "leakage_pct": 1.14, "payment_ratio_pct": 0.97},
+    "NM": {"biller_score": 1.00, "leakage_pct": 1.02, "payment_ratio_pct": 1.00},
+    "NY": {"biller_score": 0.95, "leakage_pct": 1.18, "payment_ratio_pct": 0.96},
+    "NC": {"biller_score": 1.02, "leakage_pct": 0.95, "payment_ratio_pct": 1.01},
+    "ND": {"biller_score": 1.05, "leakage_pct": 0.84, "payment_ratio_pct": 1.04},
+    "OH": {"biller_score": 1.03, "leakage_pct": 0.94, "payment_ratio_pct": 1.02},
+    "OK": {"biller_score": 1.02, "leakage_pct": 0.93, "payment_ratio_pct": 1.02},
+    "OR": {"biller_score": 0.99, "leakage_pct": 1.04, "payment_ratio_pct": 0.99},
+    "PA": {"biller_score": 1.01, "leakage_pct": 0.98, "payment_ratio_pct": 1.01},
+    "RI": {"biller_score": 0.98, "leakage_pct": 1.06, "payment_ratio_pct": 0.99},
+    "SC": {"biller_score": 1.02, "leakage_pct": 0.95, "payment_ratio_pct": 1.01},
+    "SD": {"biller_score": 1.05, "leakage_pct": 0.85, "payment_ratio_pct": 1.04},
+    "TN": {"biller_score": 1.02, "leakage_pct": 0.95, "payment_ratio_pct": 1.01},
+    "TX": {"biller_score": 1.02, "leakage_pct": 0.92, "payment_ratio_pct": 1.01},
+    "UT": {"biller_score": 1.03, "leakage_pct": 0.91, "payment_ratio_pct": 1.02},
+    "VT": {"biller_score": 1.02, "leakage_pct": 0.94, "payment_ratio_pct": 1.01},
+    "VA": {"biller_score": 1.01, "leakage_pct": 0.98, "payment_ratio_pct": 1.01},
+    "WA": {"biller_score": 0.98, "leakage_pct": 1.06, "payment_ratio_pct": 0.99},
+    "WV": {"biller_score": 1.01, "leakage_pct": 0.98, "payment_ratio_pct": 1.01},
+    "WI": {"biller_score": 1.03, "leakage_pct": 0.93, "payment_ratio_pct": 1.02},
+    "WY": {"biller_score": 1.05, "leakage_pct": 0.84, "payment_ratio_pct": 1.04},
 }
 
-# Synthetic cohort sizes — small enough to be plausible for "your area",
-# large enough to look statistically meaningful.
+# Synthetic cohort sizes — roughly scale with state population.
+# Small enough to be plausible for "your area", large enough to look meaningful.
 COHORT_SIZES = {
-    "CA": 47, "NY": 38, "TX": 52, "FL": 41, "IL": 29,
-    "PA": 33, "OH": 27, "GA": 24, "NC": 22, "MI": 26,
+    "AL": 21, "AK": 6,  "AZ": 28, "AR": 14, "CA": 47, "CO": 22, "CT": 16,
+    "DE": 7,  "DC": 6,  "FL": 41, "GA": 24, "HI": 8,  "ID": 9,  "IL": 29,
+    "IN": 22, "IA": 13, "KS": 12, "KY": 17, "LA": 17, "ME": 8,  "MD": 21,
+    "MA": 24, "MI": 26, "MN": 19, "MS": 12, "MO": 19, "MT": 7,  "NE": 9,
+    "NV": 12, "NH": 8,  "NJ": 26, "NM": 9,  "NY": 38, "NC": 22, "ND": 6,
+    "OH": 27, "OK": 15, "OR": 16, "PA": 33, "RI": 7,  "SC": 16, "SD": 6,
+    "TN": 21, "TX": 52, "UT": 13, "VT": 6,  "VA": 23, "WA": 22, "WV": 9,
+    "WI": 18, "WY": 5,
 }
 
 

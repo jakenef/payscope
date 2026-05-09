@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import NationalMapModal from './NationalMapModal'
+
 /**
  * BenchmarkPanel — "How I compare to practices in my area"
  *
@@ -6,18 +9,47 @@
  * value, plus a percentile label.
  */
 export default function BenchmarkPanel({ benchmarks, onEditProfile }) {
+  const [mapOpen, setMapOpen] = useState(false)
+
   if (!benchmarks) return <MissingProfileCard onEditProfile={onEditProfile} />
 
   const { specialty, state, cohort_size, metrics } = benchmarks
 
   return (
     <div className="panel">
-      <div className="panel-header">
-        How you compare in your area
-        <span className="panel-tag">
-          {specialty}{state ? ` · ${state}` : ''} · n={cohort_size}
+      <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>How you compare in your area</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span className="panel-tag">
+            {specialty}{state ? ` · ${state}` : ''} · n={cohort_size}
+          </span>
+          <button
+            onClick={() => setMapOpen(true)}
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: 'rgba(255,255,255,0.95)',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '0.62rem',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '3px 10px',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.16)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+          >
+            National ↗
+          </button>
         </span>
       </div>
+      <NationalMapModal
+        open={mapOpen}
+        onClose={() => setMapOpen(false)}
+        specialty={specialty}
+        userState={state}
+      />
       <div style={{ padding: '18px 18px 14px' }}>
         <p style={{
           fontFamily: 'var(--font-sans)', fontSize: '0.74rem',

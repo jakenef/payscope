@@ -9,7 +9,7 @@ from analyzer import analyze_claims
 from ai import generate_narrative
 from columns import normalize_columns
 from chat import chat_about_analysis
-from benchmarks import get_benchmarks
+from benchmarks import get_benchmarks, SPECIALTY_BASELINES, STATE_ADJUSTMENTS, COHORT_SIZES, _adjust
 
 load_dotenv()
 
@@ -71,6 +71,24 @@ def benchmark_options():
     """Lookup data for the signup specialty/state dropdowns."""
     from benchmarks import SPECIALTIES, STATES
     return {"specialties": SPECIALTIES, "states": STATES}
+
+
+@app.get("/api/benchmarks/by-state")
+def benchmarks_by_state(specialty: str = "Other"):
+    """Return per-state benchmark stats for a specialty. One round-trip for the map."""
+    if specialty not in SPECIALTY_BASELINES:
+        specialty = "Other"
+    base = SPECIALTY_BASELINES[specialty]
+
+    states = {}
+    for code, adj in STATE_ADJUSTMENTS.items():
+        states[code] = {
+            "cohort_size": COHORT_SIZES.get(code, 6),
+            "biller_score":      _adjust(base["biller_score"],      adj["biller_score"]),
+            "leakage_pct":       _adjust(base["leakage_pct"],       adj["leakage_pct"]),
+            "payment_ratio_pct": _adjust(base["payment_ratio_pct"], adj["payment_ratio_pct"]),
+        }
+    return {"specialty": specialty, "states": states}
 
 
 class ChatMessage(BaseModel):
