@@ -9,7 +9,6 @@ export default function ContractsPanel({ onChange }) {
   const [parsing, setParsing] = useState(false)
   const [error, setError] = useState(null)
   const [reviewing, setReviewing] = useState(null) // parsed contract pending review
-  const fileRef = useRef(null)
 
   useEffect(() => {
     setContracts(loadContracts(user?.id))
@@ -23,6 +22,10 @@ export default function ContractsPanel({ onChange }) {
 
   const handleFile = async (file) => {
     if (!file) return
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setError('Only PDF files are supported.')
+      return
+    }
     setError(null); setParsing(true)
     try {
       const parsed = await parseContractPdf(file)
@@ -31,7 +34,6 @@ export default function ContractsPanel({ onChange }) {
       setError(ex.message)
     } finally {
       setParsing(false)
-      if (fileRef.current) fileRef.current.value = ''
     }
   }
 
@@ -52,46 +54,22 @@ export default function ContractsPanel({ onChange }) {
         Participating Partner Agreements
         <span className="panel-tag">{contracts.length} saved</span>
       </div>
-      <div style={{ padding: '16px' }}>
+      <div style={{ padding: '24px 22px 22px' }}>
         <p style={{
-          fontFamily: 'var(--font-sans)', fontSize: '0.78rem',
-          color: 'var(--text-muted)', lineHeight: 1.55,
-          marginBottom: '14px',
+          fontFamily: 'var(--font-sans)', fontSize: '0.8rem',
+          color: 'var(--text-muted)', lineHeight: 1.6,
+          marginBottom: '20px',
         }}>
-          Upload your insurance contract PDFs. Payscope extracts the contracted rates
+          Upload your insurance contract PDFs. Payscope extracts contracted rates
           and uses them — alongside Medicare benchmarks — to flag claims paid below
           what your contract guarantees.
         </p>
 
-        {/* Upload */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".pdf"
-            onChange={(e) => handleFile(e.target.files?.[0])}
-            disabled={parsing}
-            style={{
-              flex: 1, padding: '8px 10px',
-              background: 'var(--bg-dark)', border: '1px solid var(--border)',
-              color: 'var(--text-bright)', fontFamily: 'var(--font-sans)',
-              fontSize: '0.78rem',
-            }}
-          />
-          {parsing && (
-            <span style={{
-              alignSelf: 'center',
-              fontFamily: 'var(--font-sans)', fontSize: '0.74rem',
-              color: 'var(--amber)',
-            }}>
-              Parsing<span className="blink-cursor" />
-            </span>
-          )}
-        </div>
+        <PdfDropZone onFile={handleFile} parsing={parsing} />
 
         {error && (
           <div style={{
-            padding: '8px 10px', marginBottom: '12px',
+            padding: '8px 10px', marginTop: '12px',
             background: 'var(--red-bg)', border: '1px solid var(--red)',
             fontFamily: 'var(--font-sans)', fontSize: '0.74rem',
             color: 'var(--red)',
@@ -99,18 +77,8 @@ export default function ContractsPanel({ onChange }) {
         )}
 
         {/* Saved contracts list */}
-        {contracts.length === 0 && !parsing ? (
-          <div style={{
-            padding: '14px',
-            border: '1px dashed var(--border-mid)',
-            textAlign: 'center',
-            fontFamily: 'var(--font-sans)', fontSize: '0.74rem',
-            color: 'var(--text-muted)',
-          }}>
-            No agreements uploaded yet
-          </div>
-        ) : (
-          <ul style={{ listStyle: 'none' }}>
+        {contracts.length > 0 && (
+          <ul style={{ listStyle: 'none', marginTop: '16px' }}>
             {contracts.map((c) => (
               <li key={c.id} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -353,5 +321,55 @@ function Field({ label, children }) {
       }}>{label}</div>
       {children}
     </label>
+  )
+}
+
+function PdfDropZone({ onFile, parsing }) {
+  const [dragging, setDragging] = useState(false)
+  const inputRef = useRef(null)
+
+  const pickFile = () => { if (!parsing) inputRef.current?.click() }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragging(false)
+    if (parsing) return
+    onFile(e.dataTransfer.files[0])
+  }
+
+  return (
+    <div
+      onDragOver={(e) => { e.preventDefault(); if (!parsing) setDragging(true) }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={handleDrop}
+      onClick={pickFile}
+      className={`upload-zone${dragging ? ' dragging' : ''}`}
+      style={{ cursor: parsing ? 'wait' : 'pointer', opacity: parsing ? 0.7 : 1 }}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        style={{ display: 'none' }}
+        onChange={(e) => onFile(e.target.files[0])}
+      />
+
+      <div style={{
+        fontFamily: 'var(--font-sans)', fontWeight: 600,
+        fontSize: '0.85rem', color: 'var(--text-bright)',
+        marginBottom: '6px',
+      }}>
+        {parsing
+          ? <>Extracting fee schedule<span className="blink-cursor" /></>
+          : dragging ? 'Drop to upload' : 'Drop contract PDF here or click to browse'}
+      </div>
+
+      <div style={{
+        fontFamily: 'var(--font-sans)', fontSize: '0.68rem',
+        color: 'var(--text-muted)', letterSpacing: '0.04em',
+      }}>
+        Payer name, dates, and CPT rates auto-extracted · PDF only
+      </div>
+    </div>
   )
 }
