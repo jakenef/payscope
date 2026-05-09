@@ -158,6 +158,7 @@ export default function App() {
             <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
               <ScoreSidebar summary={data.summary} />
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
                 {data.underpayment_table.length > 0 ? (
                   <UnderpaymentTable rows={data.underpayment_table} />
                 ) : (
@@ -173,7 +174,6 @@ export default function App() {
                 )}
               </div>
             </div>
-            {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
           </div>
         )}
 

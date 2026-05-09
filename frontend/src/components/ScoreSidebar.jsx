@@ -12,28 +12,34 @@ function ScoreRing({ score }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
-      <svg width="128" height="128" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="64" cy="64" r={radius} fill="none" stroke={track} strokeWidth="10" />
-        <circle
-          cx="64" cy="64" r={radius}
-          fill="none" stroke={color} strokeWidth="10"
-          strokeDasharray={`${filled} ${circumference}`}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 0.9s ease' }}
-        />
-      </svg>
-      <div style={{ marginTop: '-72px', textAlign: 'center', pointerEvents: 'none' }}>
+      <div style={{ position: 'relative', width: '128px', height: '128px' }}>
+        <svg width="128" height="128" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="64" cy="64" r={radius} fill="none" stroke={track} strokeWidth="10" />
+          <circle
+            cx="64" cy="64" r={radius}
+            fill="none" stroke={color} strokeWidth="10"
+            strokeDasharray={`${filled} ${circumference}`}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dasharray 0.9s ease' }}
+          />
+        </svg>
         <div style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: '2.6rem', color, lineHeight: 1,
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center', pointerEvents: 'none',
         }}>
-          {score}
-        </div>
-        <div style={{
-          fontFamily: 'var(--font-sans)', fontSize: '0.6rem', fontWeight: 500,
-          color: 'var(--text-muted)', letterSpacing: '0.08em', marginTop: '2px',
-        }}>
-          / 100
+          <div style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: '2.6rem', color, lineHeight: 1,
+          }}>
+            {score}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-sans)', fontSize: '0.6rem', fontWeight: 500,
+            color: 'var(--text-muted)', letterSpacing: '0.08em', marginTop: '2px',
+          }}>
+            / 100
+          </div>
         </div>
       </div>
       <div style={{ marginTop: '12px' }}>
