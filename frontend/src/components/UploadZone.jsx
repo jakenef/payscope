@@ -5,7 +5,9 @@ export default function UploadZone({ onUpload }) {
   const inputRef = useRef(null)
 
   const handleFile = (file) => {
-    if (!file || !file.name.endsWith('.csv')) return
+    if (!file) return
+    const name = file.name.toLowerCase()
+    if (!name.endsWith('.csv') && !name.endsWith('.xlsx') && !name.endsWith('.xls')) return
     onUpload(file)
   }
 
@@ -26,7 +28,7 @@ export default function UploadZone({ onUpload }) {
       <input
         ref={inputRef}
         type="file"
-        accept=".csv"
+        accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
         style={{ display: 'none' }}
         onChange={(e) => handleFile(e.target.files[0])}
       />
@@ -36,14 +38,14 @@ export default function UploadZone({ onUpload }) {
         fontSize: '0.85rem', color: 'var(--text-bright)',
         marginBottom: '6px',
       }}>
-        {dragging ? 'Drop to upload' : 'Drop CSV file here or click to browse'}
+        {dragging ? 'Drop to upload' : 'Drop CSV or Excel file here or click to browse'}
       </div>
 
       <div style={{
         fontFamily: 'var(--font-sans)', fontSize: '0.68rem',
         color: 'var(--text-muted)', letterSpacing: '0.04em',
       }}>
-        Columns required: Provider · Ptype · CPT · Description · Charged · Paid
+        Columns auto-detected · CSV, XLSX, XLS supported
       </div>
     </div>
   )

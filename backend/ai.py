@@ -1,6 +1,5 @@
 import json
-import os
-from openai import OpenAI
+from llm import chat, LLMUnavailable
 
 SYSTEM_PROMPT = """You are a medical billing analyst reviewing claims data for an independent physician practice.
 You will receive structured JSON data from a revenue integrity analysis.
@@ -10,10 +9,6 @@ Keep your response under 200 words. Write in paragraph form, no bullet points.""
 
 
 def generate_narrative(analysis: dict) -> str:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        return "AI narrative unavailable — OPENAI_API_KEY not set."
-
     summary = analysis["summary"]
     top_payers = sorted(analysis["payer_breakdown"], key=lambda x: x["variance_pct"])[:5]
     top_cpts = sorted(analysis["cpt_breakdown"], key=lambda x: x["variance_pct"])[:5]
@@ -29,9 +24,7 @@ def generate_narrative(analysis: dict) -> str:
     }
 
     try:
-        client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o",
+        return chat(
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": json.dumps(payload)},
@@ -39,6 +32,7 @@ def generate_narrative(analysis: dict) -> str:
             max_tokens=350,
             temperature=0.3,
         )
-        return response.choices[0].message.content.strip()
+    except LLMUnavailable as e:
+        return f"AI narrative unavailable: {e}"
     except Exception as e:
-        return f"AI narrative unavailable: {str(e)}"
+        return f"AI narrative unavailable: {e}"

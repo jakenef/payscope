@@ -1,12 +1,14 @@
 import io
-import os
 import pandas as pd
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 from analyzer import analyze_claims
 from ai import generate_narrative
+from columns import normalize_columns
+from chat import chat_about_analysis
 
 load_dotenv()
 
@@ -20,32 +22,61 @@ app.add_middleware(
 )
 
 
+def _read_dataframe(filename: str, contents: bytes) -> pd.DataFrame:
+    name = (filename or "").lower()
+    buf = io.BytesIO(contents)
+    if name.endswith(".xlsx") or name.endswith(".xls"):
+        return pd.read_excel(buf)
+    if name.endswith(".csv"):
+        return pd.read_csv(buf)
+    # Fallback: try CSV first, then Excel
+    try:
+        return pd.read_csv(io.BytesIO(contents))
+    except Exception:
+        return pd.read_excel(io.BytesIO(contents))
+
+
 @app.post("/api/analyze")
 async def analyze(file: UploadFile = File(...)):
     contents = await file.read()
     try:
-        df = pd.read_csv(io.BytesIO(contents))
-    except Exception:
-        raise HTTPException(status_code=400, detail="Could not parse CSV file.")
+        df = _read_dataframe(file.filename, contents)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not parse file: {e}")
 
-    # Normalize column names
-    df.columns = [c.strip() for c in df.columns]
-    df = df.rename(columns={"Ptype": "ptype", "Cpt": "cpt", "Description": "description",
-                              "Charged": "charged", "Paid": "paid"})
-
-    required = {"cpt", "ptype", "charged", "paid"}
-    missing = required - set(df.columns)
-    if missing:
-        raise HTTPException(
-            status_code=422,
-            detail=f"CSV is missing required columns: {', '.join(sorted(missing))}. "
-                   f"Expected headers: Cpt, Ptype, Charged, Paid."
-        )
+    try:
+        df, column_mapping, ai_inferred = normalize_columns(df)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
     try:
         result = analyze_claims(df)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
+    result["column_mapping"] = column_mapping
+    result["column_mapping_ai_inferred"] = ai_inferred
     result["ai_narrative"] = generate_narrative(result)
     return result
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+    analysis: dict
+
+
+@app.post("/api/chat")
+async def chat_endpoint(req: ChatRequest):
+    try:
+        reply = chat_about_analysis(
+            messages=[m.model_dump() for m in req.messages],
+            analysis=req.analysis,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Chat unavailable: {e}")
+    return {"role": "assistant", "content": reply}

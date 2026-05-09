@@ -5,6 +5,8 @@ import ScoreSidebar from './components/ScoreSidebar'
 import UnderpaymentTable from './components/UnderpaymentTable'
 import PayerChart from './components/PayerChart'
 import NarrativePanel from './components/NarrativePanel'
+import ChatPanel from './components/ChatPanel'
+import ColumnMappingPill from './components/ColumnMappingPill'
 import LandingContent from './components/LandingContent'
 
 export default function App() {
@@ -76,7 +78,7 @@ export default function App() {
       </header>
 
       {/* ── Main ────────────────────────────────── */}
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '28px 24px 48px' }}>
+      <main style={{ maxWidth: '1480px', margin: '0 auto', padding: '28px 24px 48px' }}>
 
         {/* Upload / idle */}
         {(status === 'idle' || status === 'error') && (
@@ -95,7 +97,8 @@ export default function App() {
                     fontFamily: 'var(--font-sans)', fontSize: '0.8rem',
                     color: 'var(--text-muted)', lineHeight: 1.6,
                   }}>
-                    Upload a CSV of submitted claims to detect underpayments and downcoding against CMS Medicare benchmark rates.
+                    Upload a CSV or Excel file of submitted claims. Columns are auto-detected,
+                    and underpayments and downcoding are evaluated against CMS Medicare benchmark rates.
                   </p>
                 </div>
                 <UploadZone onUpload={handleUpload} />
@@ -158,6 +161,12 @@ export default function App() {
         {/* Dashboard */}
         {status === 'done' && data && (
           <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {data.column_mapping_ai_inferred && (
+              <ColumnMappingPill
+                mapping={data.column_mapping}
+                aiInferred={data.column_mapping_ai_inferred}
+              />
+            )}
             <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
               <ScoreSidebar summary={data.summary} />
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -176,6 +185,7 @@ export default function App() {
                   <PayerChart payers={data.payer_breakdown} />
                 )}
               </div>
+              <ChatPanel analysis={data} />
             </div>
           </div>
         )}
