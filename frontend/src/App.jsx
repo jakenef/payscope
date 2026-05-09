@@ -5,6 +5,7 @@ import ScoreSidebar from './components/ScoreSidebar'
 import UnderpaymentTable from './components/UnderpaymentTable'
 import PayerChart from './components/PayerChart'
 import NarrativePanel from './components/NarrativePanel'
+import LandingContent from './components/LandingContent'
 
 export default function App() {
   const [status, setStatus] = useState('idle')
@@ -81,7 +82,7 @@ export default function App() {
         {(status === 'idle' || status === 'error') && (
           <div className="fade-up" style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', minHeight: 'calc(100vh - 160px)',
+            paddingTop: '56px',
           }}>
             <div className="panel" style={{ width: '100%', maxWidth: '520px' }}>
               <div className="panel-header">
@@ -126,6 +127,8 @@ export default function App() {
               <span>·</span>
               <span>No data retained</span>
             </div>
+
+            <LandingContent />
           </div>
         )}
 
