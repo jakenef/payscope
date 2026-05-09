@@ -17,16 +17,25 @@ npm run dev      # dev server at http://localhost:5173
 npm run build    # production build
 npm run lint     # ESLint
 ```
+`/admin` in **dev** uses **preview outreach data** by default (no Supabase reads). Set `VITE_ADMIN_USE_MOCK_DATA=false` in `frontend/.env.local` to use real leads.
 
-**Environment**: Copy `backend/.env.example` to `backend/.env` and set `OPENAI_API_KEY`. `OPENROUTER_API_KEY` is the fallback if OpenAI is unavailable.
+**Environment**: Copy `backend/.env.example` to `backend/.env` and set `OPENAI_API_KEY`. `OPENROUTER_API_KEY` is the fallback if OpenAI is unavailable. For `/admin` NPI import, add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `ADMIN_EMAILS` (comma-separated, same people as `frontend/src/admin/config.js`).
 
 ## Architecture
 
 ### Backend (`backend/`)
 
-Single FastAPI app with two endpoints:
+Single FastAPI app: core product plus admin helpers:
 - `POST /api/analyze` — accepts CSV or Excel upload, returns full analysis + AI narrative
 - `POST /api/chat` — stateless chat turn about a prior analysis result
+- `POST /api/admin/npi/import` — bulk upsert NPI-2 orgs from CMS NPPES (Supabase service role; Supabase JWT must be an admin email)
+- `POST /api/admin/leads/{id}/letter` — send Lob intro letter (admin JWT)
+- `POST /api/admin/leads/{id}/call` — outbound AI voice call via Twilio (admin JWT)
+- `POST /api/admin/voice/tick` — process due follow-up calls (admin JWT or `X-Admin-Key: ADMIN_CRON_SECRET`)
+- `POST /api/webhooks/lob` — Lob tracking (sign with `LOB_WEBHOOK_SECRET` when set)
+- `GET|POST /api/voice/twiml?lead_id=` — TwiML for Twilio → ElevenLabs stream
+- `POST /api/webhooks/twilio/voice` — Twilio call status callbacks
+- `POST /api/webhooks/elevenlabs` — optional post-conversation webhook
 
 Request flow for `/api/analyze`:
 1. `main.py` parses the file into a DataFrame

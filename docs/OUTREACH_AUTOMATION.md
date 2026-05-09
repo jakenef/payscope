@@ -21,9 +21,22 @@ file paths, code patterns, and gotchas.
   - RLS policies restrict both to admins
 - **Frontend**:
   - `src/admin/AdminApp.jsx` — pipeline view (7 status columns)
+  - `src/admin/NpiImportPanel.jsx` — NPPES import (state + NUCC taxonomy) calling FastAPI
   - `src/admin/LeadDrawer.jsx` — create/edit/delete + outreach history viewer
-  - `src/admin/api.js` — Supabase CRUD helpers (`listLeads`, `createLead`,
-    `updateLead`, `deleteLead`, `listOutreach`, `logOutreach`)
+  - `src/admin/api.js` — Supabase CRUD helpers + `importFromNpiRegistry`
+- **Backend** (`POST /api/admin/npi/import`):
+  - `admin_auth.py` — validates Supabase user JWT vs `ADMIN_EMAILS`
+  - `npi_registry.py` — CMS NPPES fetch + normalization (NPI-2 + location address)
+  - `supabase_leads.py` — service-role REST upsert on `npi`
+- **Migrations**:
+  - `20260509190000_outreach_lead_columns.sql` — Lob / voice columns on `leads`
+  - `20260509193000_outreach_mail_channel.sql` — `outreach_log.channel` includes `mail`
+- **Lob + Twilio + ElevenLabs** (FastAPI):
+  - `lob_outreach.py` — create letter (`template_id` + merge variables)
+  - `voice_outreach.py` — TwiML stream URL + `calls.create`
+  - `supabase_admin.py` — service-role patch / `outreach_log` / voice queue query
+  - `POST /api/webhooks/lob`, `/api/webhooks/twilio/voice`, `/api/webhooks/elevenlabs`
+  - `src/admin/VoiceOutreachBar.jsx` — manual “voice tick”; production cron uses `X-Admin-Key`
 - **Vercel rewrite** at `frontend/vercel.json` so `/admin` resolves to the SPA
   in production.
 - **Email infra** — Resend SMTP wired into Supabase auth (signup/recovery
@@ -36,6 +49,28 @@ file paths, code patterns, and gotchas.
 - **Auth** — Supabase, profile fields (`specialty`, `state`) in `user_metadata`.
 - **Billing** — *None.* The "$50/month" on the landing page is currently
   decorative. Stripe integration is Stage 4.
+
+### Lob letter template (dashboard)
+
+Create an **HTML letter** template in Lob and set `LOB_LETTER_TEMPLATE_ID`. The API passes **merge variables**:
+
+- `practice_name`
+- `demo_url` — `https://payscope-two.vercel.app/?ref={lead_uuid}` (override with `PAYSCOPE_DEMO_URL`)
+- `city`, `state`
+
+Use them in the template as `{{practice_name}}`, etc. Add a **QR code** in Lob’s editor pointing at `{{demo_url}}` if desired.
+
+**Webhooks** (Lob dashboard → your API base, e.g. Render):
+
+- `POST {PUBLIC_API_BASE}/api/webhooks/lob` — subscribe to letter events (`letter.mailed`, `letter.in_transit`, …). Set `LOB_WEBHOOK_SECRET` and verify signatures in production.
+
+When a qualifying event fires, the handler sets `letter_sent_at` and `voice_followup_after` (now + `VOICE_FOLLOWUP_DELAY_DAYS`, default 8).
+
+**Twilio** must request `GET` or `POST` `{PUBLIC_API_BASE}/api/voice/twiml?lead_id=<uuid>`.
+
+Set `ELEVENLABS_TWILIO_STREAM_URL` to the **WebSocket URL** from the ElevenLabs Conversational AI Twilio integration. Status callbacks: `POST .../api/webhooks/twilio/voice`.
+
+**Cron** (e.g. Render): `curl -X POST -H "X-Admin-Key: $ADMIN_CRON_SECRET" "$PUBLIC_API_BASE/api/admin/voice/tick?limit=5"`
 
 ---
 
@@ -78,17 +113,208 @@ replies. Move leads through the pipeline automatically based on engagement.
   on Render with a scheduler.
 - **Reply detection**: Resend's inbound webhooks. Set up an inbound route
   `replies@payscope.scalr.media` that POSTs to the backend.
-
-### Decisions still open
-- **Sequence content** — write 3-5 cold-email variants. Should reference
-  the prospect's specialty (`leads.specialty`) and state (`leads.state`),
-  ideally with a personalized hook (LLM-generated based on practice name).
-- **Send cadence** — proposed: Day 0 (intro), Day 3 (follow-up + sample
-  insight), Day 7 (case study), Day 14 (last-attempt). Stop sequence on
+- **Send cadence**: Day 0 (intro), Day 3 (follow-up + sample-insight framing),
+  Day 7 (how teams use Payscope), Day 14 (breakup / close file). Stop on
   reply or unsubscribe.
-- **Personalization tier** — pure templates (cheap, fast) vs LLM-rewritten
-  per lead (better reply rate, $0.01-0.05 per email at GPT-4o-mini prices).
-  Recommend: hybrid — fixed body, LLM-generated opener line.
+- **Personalization**: hybrid — fixed bodies below; when `ai_personalize` is
+  true on a step, inject `{{ai_opener}}` (LLM one-liner) after the greeting.
+
+### Sequence copy (paste into `email_steps`)
+
+Tokens use the **`lead`** row from `public.leads` (see migration
+`20260509180408_admin_leads.sql`). Render **plain text** as the canonical
+`body_template`; convert to HTML in the sender if needed. If
+`{{lead.contact_name}}` is empty, replace with "there" or drop the name after
+"Hi".
+
+| Token | Field |
+| --- | --- |
+| `{{lead.contact_name}}` | `contact_name` |
+| `{{lead.practice_name}}` | `practice_name` |
+| `{{lead.specialty}}` | `specialty` |
+| `{{lead.state}}` | `state` |
+| `{{lead.email}}` | `email` |
+| `{{ai_opener}}` | Optional LLM output when `ai_personalize` is true (empty otherwise) |
+| `{{unsubscribe_url}}` | Populated by `/api/unsubscribe?token=...` (Stage 2) |
+
+**Compliance footer** — append to every HTML body (add a real mailing address
+when operations finalizes one):
+
+```html
+<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+<p style="font-size:12px;color:#6b7280;line-height:1.5;">
+  Payscope · Revenue integrity for independent practices<br />
+  Reply to this email or write <a href="mailto:hello@payscope.scalr.media">hello@payscope.scalr.media</a><br />
+  You received this because we believe your practice may benefit from a revenue-integrity audit tool.<br />
+  <a href="{{unsubscribe_url}}">Unsubscribe</a>
+</p>
+```
+
+Mirror the same facts in plain text (address line, unsubscribe URL).
+
+#### Step 1 — Day 0 (intro)
+
+**Subject** (pick one per enrollment or A/B in a separate sequence):
+
+- `Quick question — underpayments at {{lead.practice_name}}`
+- `{{lead.specialty}} revenue integrity — 60-second ask`
+- `Are you leaving money on the exam table?`
+
+**Body variant A — direct**
+
+```
+Hi {{lead.contact_name}},
+
+{{ai_opener}}
+
+Payscope is a lightweight revenue-integrity dashboard for independent practices. You upload a standard claims CSV; we benchmark every paid line against CMS Medicare rates, flag systematic underpayments and downcoding, and summarize what's actionable — including by payer — so you can tighten the loop with billing or payer contracting.
+
+Open to a 15-minute conversation this week?
+
+— Payscope
+hello@payscope.scalr.media
+```
+
+**Body variant B — problem-first**
+
+```
+Hi {{lead.contact_name}},
+
+{{ai_opener}}
+
+Most {{lead.specialty}} groups we talk to suspect underpayments long before anyone proves it claim-by-claim. Payscope turns that intuition into tables: paid vs CMS-expected by CPT and payer, plus a concise narrative you can reuse with leadership or your billing partner.
+
+Would a short demo (synthetic sample data — no PHI) be useful?
+
+— Payscope
+```
+
+**Body variant C — peer tone**
+
+```
+Hi {{lead.contact_name}},
+
+{{ai_opener}}
+
+We built Payscope so practice leaders can audit payment performance without fighting their EHR vendor for custom reports — upload CSV, see variance vs CMS benchmarks, prioritize the worst payers and codes.
+
+Interested in seeing what that looks like for a {{lead.state}} payer mix?
+
+— Payscope
+```
+
+**Body variant D — skeptic-friendly**
+
+```
+Hi {{lead.contact_name}},
+
+{{ai_opener}}
+
+If you've ever had a payer say "paid per contract" without a cite you can reconcile, Payscope gives you Medicare-anchored context line-by-line: where you're materially under benchmark, downcoded, or varianced by payer — in minutes from a spreadsheet export.
+
+Worth forwarding to whoever owns revenue integrity on your side?
+
+— Payscope
+```
+
+**Body variant E — short**
+
+```
+Hi {{lead.contact_name}},
+
+{{ai_opener}}
+
+Payscope: claims CSV → underpayment heatmap vs CMS benchmarks + payer-level breakdown.
+
+Open to introducing this to whoever runs billing KPIs at {{lead.practice_name}}?
+
+— Payscope
+```
+
+Rotate A–E across leads or define five separate `email_sequences` rows that
+only differ on step 1.
+
+#### Step 2 — Day 3 (follow-up + sample insight)
+
+**Subject:** `RE: Quick question — underpayments at {{lead.practice_name}}`
+(alternate: `A concrete pattern we often see ({{lead.specialty}})`)
+
+**Body:**
+
+```
+Hi {{lead.contact_name}},
+
+Following up once — Practices with a heavier commercial mix in {{lead.state}} often see compression on Evaluation & Management alongside procedural codes; the spreadsheet looks "okay" until you normalize against CMS benchmarks and separate true downcoding from contract-level discounts.
+
+Happy to generate a read-only synthetic demo dashboard tuned to {{lead.specialty}} / {{lead.state}} so you can click around without PHI.
+
+Reply "demo" and we'll send a magic link — or ignore if timing's bad.
+
+— Payscope
+```
+
+#### Step 3 — Day 7 (usage angle)
+
+**Subject:** `How groups use Payscope before talking to billing` (alternate:
+`The "benchmark letter" playbook`)
+
+**Body:**
+
+```
+Hi {{lead.contact_name}},
+
+Teams use Payscope in two beats: (1) confirm how far individual payers stray from CMS-expected on flagged CPTs (2) walk into billing or payer meetings with summarized evidence instead of anecdotes.
+
+No patient identifiers required — de-identified claim-level dollars only.
+
+Still worth 15 minutes on your calendar?
+
+— Payscope
+```
+
+#### Step 4 — Day 14 (breakup)
+
+**Subject:** `Should I close the loop?` (alternate: `Permission to fade out`)
+
+**Body:**
+
+```
+Hi {{lead.contact_name}},
+
+This is my last note on this thread. If revenue integrity benchmarking isn't on your roadmap right now, no problem — hit reply with "later" or "unsubscribe" and we'll pause everything.
+
+If you do want the synthetic demo snapshot, reply "demo" anytime.
+
+Good luck tightening collections this year.
+
+— Payscope
+```
+
+#### LLM prompt for `{{ai_opener}}` (optional)
+
+Single-turn; **non-sensitive inputs only** (`practice_name`, `specialty`,
+`state` — no PHI). If the LLM fails, send with `{{ai_opener}}` blank.
+
+```
+You write one conversational sentence (max 28 words), US English, founder tone, plain language,
+for the start of a cold email introducing Payscope (Medicare-benchmark revenue integrity dashboard for medical practices).
+
+Rules:
+- Mention something specific ONLY if plausible from the practice/specialty/state (avoid fabricating accolades or news).
+- No medical advice. No HIPAA content. No mention of uninsured patients or diagnosis.
+- No guilt or urgency tricks. Sound human and respectful.
+- Output ONLY the opener sentence — no greeting, no sign-off.
+
+practice_name={{practice_name}}, specialty={{specialty}}, state={{state}}
+```
+
+#### Operator notes
+
+1. Prefer contacts with a **plausible business relationship**; cold lists at
+   scale have legal and deliverability risk (see Compliance below).
+2. Step delays: `delay_days` 0 for step 1, then 3, 4, 7 after the prior send
+   (or absolute offsets from enrollment — match product behavior to this
+   Day 0 / 3 / 7 / 14 intent).
 
 ### Schema changes
 
@@ -655,13 +881,14 @@ counts.
 
 1. **Lead source** — manual entry only for now, or build a CSV importer?
    Long-term: NPI registry sync, web scraping, or buy a list?
-2. **Email content tone** — formal medical-business, or casual founder-style?
+2. **Copy edits** — default sequence lives under “Sequence copy” above (founder
+   tone); need a formal medical-business pass or regional customization?
 3. **Trial period** — 14-day free trial after demo, or paid immediately?
 4. **Annual discount** — yes/no?
 5. **Calling hours strategy** — strict (only 9am-5pm local) or aggressive
    (8am-9pm)?
-6. **Personalization budget** — willing to spend ~$0.05/email for LLM-rewrite,
-   or strict templates only?
+6. **LLM opener** — enable `ai_personalize` on step 1 only, or multiple steps?
+   Cap daily spend?
 
 ---
 
