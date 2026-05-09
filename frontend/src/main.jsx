@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import AdminApp from './admin/AdminApp.jsx'
 import { AuthProvider } from './auth/AuthContext'
 
 const REQUIRED_VARS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY']
@@ -17,10 +18,13 @@ if (missing.length > 0) {
   throw new Error(`Missing env vars: ${missing.join(', ')}`)
 }
 
+// Hidden admin area — pathname-based, no router dep. Type /admin in the URL.
+const isAdminPath = window.location.pathname.startsWith('/admin')
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <App />
+      {isAdminPath ? <AdminApp /> : <App />}
     </AuthProvider>
   </StrictMode>,
 )
