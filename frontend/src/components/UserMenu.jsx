@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import ProfileSettingsModal from '../auth/ProfileSettingsModal'
 
 export default function UserMenu({ onSignInClick }) {
   const { user, signOut } = useAuth()
   const [open, setOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -56,7 +58,6 @@ export default function UserMenu({ onSignInClick }) {
         }}>
           <div style={{
             padding: '10px 12px',
-            borderBottom: '1px solid var(--border)',
           }}>
             <div style={{
               fontFamily: 'var(--font-sans)', fontSize: '0.78rem',
@@ -73,22 +74,39 @@ export default function UserMenu({ onSignInClick }) {
               color: 'var(--primary-light)',
             }}>{user.plan}</div>
           </div>
-          <button
-            onClick={() => { setOpen(false); signOut() }}
-            style={{
-              width: '100%', textAlign: 'left',
-              padding: '9px 12px', background: 'transparent', border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-sans)', fontSize: '0.76rem',
-              color: 'var(--text)',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(42,157,143,0.06)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-          >
+          <MenuItem onClick={() => { setOpen(false); setSettingsOpen(true) }}>
+            Profile settings
+          </MenuItem>
+          <MenuItem onClick={() => { setOpen(false); signOut() }}>
             Sign out
-          </button>
+          </MenuItem>
         </div>
       )}
+
+      <ProfileSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
+  )
+}
+
+function MenuItem({ onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%', textAlign: 'left',
+        padding: '9px 12px', background: 'transparent', border: 'none',
+        borderTop: '1px solid var(--border)',
+        cursor: 'pointer',
+        fontFamily: 'var(--font-sans)', fontSize: '0.76rem',
+        color: 'var(--text)',
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(42,157,143,0.06)'}
+      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+    >
+      {children}
+    </button>
   )
 }

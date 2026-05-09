@@ -47,7 +47,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Header ──────────────────────────────── */}
       <header style={{
@@ -93,7 +93,7 @@ export default function App() {
 
       {/* ── Marketing landing (logged out) ──────── */}
       {!isAuthed && (
-        <main style={{ maxWidth: '1480px', margin: '0 auto', padding: '0 24px 48px' }}>
+        <main style={{ flex: 1, width: '100%', maxWidth: '1480px', margin: '0 auto', padding: '0 24px 48px' }}>
           <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Hero
               onPrimaryCta={() => openAuth('signup')}
@@ -106,7 +106,7 @@ export default function App() {
 
       {/* ── App (authed) ────────────────────────── */}
       {isAuthed && (
-        <main style={{ maxWidth: '1480px', margin: '0 auto', padding: '28px 24px 48px' }}>
+        <main style={{ flex: 1, width: '100%', maxWidth: '1480px', margin: '0 auto', padding: '28px 24px 48px' }}>
 
           {(status === 'idle' || status === 'error') && (
             <div className="fade-up" style={{

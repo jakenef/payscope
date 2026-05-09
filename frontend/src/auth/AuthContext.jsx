@@ -61,18 +61,33 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signUp = useCallback(async ({ email, password, name, specialty, state }) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name, specialty, state } },
     })
     if (error) throw error
+    // Supabase silently "succeeds" when an email already exists (security-by-obscurity).
+    // The tell: the returned user has an empty identities array. Surface a real error.
+    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      throw new Error('An account with this email already exists. Sign in instead.')
+    }
   }, [])
 
   const updateProfile = useCallback(async ({ specialty, state, name }) => {
     const { error } = await supabase.auth.updateUser({
-      data: { specialty, state, ...(name ? { name } : {}) },
+      data: { specialty, state, ...(name !== undefined ? { name } : {}) },
     })
+    if (error) throw error
+  }, [])
+
+  const updateEmail = useCallback(async (newEmail) => {
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    if (error) throw error
+  }, [])
+
+  const updatePassword = useCallback(async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) throw error
   }, [])
 
@@ -81,7 +96,11 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut, updateProfile, isAuthed: !!user, loading }}>
+    <AuthContext.Provider value={{
+      user, isAuthed: !!user, loading,
+      signIn, signUp, signOut,
+      updateProfile, updateEmail, updatePassword,
+    }}>
       {children}
     </AuthContext.Provider>
   )
