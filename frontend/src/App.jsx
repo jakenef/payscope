@@ -182,13 +182,7 @@ export default function App() {
 
           {status === 'done' && data && (
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {data.column_mapping_ai_inferred && (
-                <ColumnMappingPill
-                  mapping={data.column_mapping}
-                  aiInferred={data.column_mapping_ai_inferred}
-                />
-              )}
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+<div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                 <ScoreSidebar summary={data.summary} />
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
