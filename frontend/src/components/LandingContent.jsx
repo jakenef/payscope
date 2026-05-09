@@ -44,19 +44,11 @@ const STEPS = [
 
 const PLANS = [
   {
-    name: 'Free',
-    price: '$0',
-    desc: '1 provider, 3 months of claims history, basic dashboard',
-    features: ['1 provider', '3 months claims history', 'Basic dashboard', 'Community support'],
-    cta: 'Start Free',
-    highlight: false,
-  },
-  {
     name: 'Pro',
     price: '$99',
     badge: 'Most Popular',
     desc: 'Unlimited claims, full analytics, biller scorecard, email alerts',
-    features: ['Unlimited claims', 'Full analytics suite', 'Biller scorecard', 'Email alerts on flagged claims', 'CSV & EHR imports'],
+    features: ['1 provider included', '3 months claims history', 'Basic dashboard', 'Community support', 'Unlimited claims', 'Full analytics suite', 'Biller scorecard', 'Email alerts on flagged claims', 'CSV & EHR imports'],
     cta: 'Start Free Trial',
     highlight: true,
   },
@@ -271,7 +263,7 @@ export default function LandingContent() {
             Start free. Upgrade when Payscope<br />has already paid for itself.
           </SectionHeading>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', alignItems: 'start', maxWidth: '800px', margin: '0 auto' }}>
           {PLANS.map(({ name, price, badge, desc, features, cta, highlight }) => (
             <div key={name} className="panel" style={{
               border: `1px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
