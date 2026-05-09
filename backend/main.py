@@ -1,6 +1,6 @@
 import io
 import pandas as pd
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -9,6 +9,7 @@ from analyzer import analyze_claims
 from ai import generate_narrative
 from columns import normalize_columns
 from chat import chat_about_analysis
+from benchmarks import get_benchmarks
 
 load_dotenv()
 
@@ -37,7 +38,11 @@ def _read_dataframe(filename: str, contents: bytes) -> pd.DataFrame:
 
 
 @app.post("/api/analyze")
-async def analyze(file: UploadFile = File(...)):
+async def analyze(
+    file: UploadFile = File(...),
+    specialty: str | None = Form(None),
+    state: str | None = Form(None),
+):
     contents = await file.read()
     try:
         df = _read_dataframe(file.filename, contents)
@@ -57,7 +62,15 @@ async def analyze(file: UploadFile = File(...)):
     result["column_mapping"] = column_mapping
     result["column_mapping_ai_inferred"] = ai_inferred
     result["ai_narrative"] = generate_narrative(result)
+    result["benchmarks"] = get_benchmarks(specialty, state, result["summary"])
     return result
+
+
+@app.get("/api/benchmark-options")
+def benchmark_options():
+    """Lookup data for the signup specialty/state dropdowns."""
+    from benchmarks import SPECIALTIES, STATES
+    return {"specialties": SPECIALTIES, "states": STATES}
 
 
 class ChatMessage(BaseModel):

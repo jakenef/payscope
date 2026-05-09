@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from './AuthContext'
+import { fetchBenchmarkOptions } from '../api/analyze'
 
 export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
   const { signIn, signUp } = useAuth()
@@ -7,6 +8,9 @@ export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [specialty, setSpecialty] = useState('')
+  const [state, setState] = useState('')
+  const [options, setOptions] = useState({ specialties: [], states: [] })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const [info, setInfo] = useState(null)
@@ -16,6 +20,15 @@ export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
       setMode(initialMode); setErr(null); setInfo(null); setBusy(false)
     }
   }, [open, initialMode])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    fetchBenchmarkOptions()
+      .then((data) => { if (!cancelled) setOptions(data) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -31,7 +44,7 @@ export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
     setBusy(true); setErr(null); setInfo(null)
     try {
       if (mode === 'signup') {
-        await signUp({ email, password, name })
+        await signUp({ email, password, name, specialty, state })
         // If email confirmations are on, the session won't be set yet — tell the user.
         setInfo('Account created. Check your email for a confirmation link before signing in.')
       } else {
@@ -69,13 +82,39 @@ export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
 
         <form onSubmit={handleSubmit} style={{ padding: '22px 22px 20px' }}>
           {isSignup && (
-            <Field label="Name">
-              <input
-                type="text" value={name} onChange={(e) => setName(e.target.value)}
-                autoComplete="name" placeholder="Dr. Jane Smith"
-                style={inputStyle}
-              />
-            </Field>
+            <>
+              <Field label="Name">
+                <input
+                  type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  autoComplete="name" placeholder="Dr. Jane Smith"
+                  style={inputStyle}
+                />
+              </Field>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <Field label="Specialty">
+                  <select
+                    value={specialty} onChange={(e) => setSpecialty(e.target.value)}
+                    style={inputStyle} required
+                  >
+                    <option value="">Select…</option>
+                    {options.specialties.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="State">
+                  <select
+                    value={state} onChange={(e) => setState(e.target.value)}
+                    style={inputStyle} required
+                  >
+                    <option value="">Select…</option>
+                    {options.states.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            </>
           )}
 
           <Field label="Email">

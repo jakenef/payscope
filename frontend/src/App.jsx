@@ -10,11 +10,12 @@ import ColumnMappingPill from './components/ColumnMappingPill'
 import LandingContent from './components/LandingContent'
 import Hero from './components/Hero'
 import UserMenu from './components/UserMenu'
+import BenchmarkPanel from './components/BenchmarkPanel'
 import AuthModal from './auth/AuthModal'
 import { useAuth } from './auth/AuthContext'
 
 export default function App() {
-  const { isAuthed } = useAuth()
+  const { isAuthed, user } = useAuth()
   const [status, setStatus] = useState('idle')
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -27,7 +28,10 @@ export default function App() {
     setStatus('loading')
     setError(null)
     try {
-      const result = await analyzeCSV(file)
+      const result = await analyzeCSV(file, {
+        specialty: user?.specialty,
+        state: user?.state,
+      })
       setData(result)
       setStatus('done')
     } catch (e) {
@@ -189,6 +193,7 @@ export default function App() {
                 <ScoreSidebar summary={data.summary} />
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
+                  <BenchmarkPanel benchmarks={data.benchmarks} />
                   {data.underpayment_table.length > 0 ? (
                     <UnderpaymentTable rows={data.underpayment_table} />
                   ) : (

@@ -22,6 +22,8 @@ function shapeUser(supaUser) {
     email,
     name,
     plan: 'Free',
+    specialty: meta.specialty || null,
+    state: meta.state || null,
   }
 }
 
@@ -58,11 +60,18 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }, [])
 
-  const signUp = useCallback(async ({ email, password, name }) => {
+  const signUp = useCallback(async ({ email, password, name, specialty, state }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name, specialty, state } },
+    })
+    if (error) throw error
+  }, [])
+
+  const updateProfile = useCallback(async ({ specialty, state, name }) => {
+    const { error } = await supabase.auth.updateUser({
+      data: { specialty, state, ...(name ? { name } : {}) },
     })
     if (error) throw error
   }, [])
@@ -72,7 +81,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut, isAuthed: !!user, loading }}>
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, updateProfile, isAuthed: !!user, loading }}>
       {children}
     </AuthContext.Provider>
   )

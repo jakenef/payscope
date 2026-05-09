@@ -1,10 +1,12 @@
+import DashboardPreview from './DashboardPreview'
+
 export default function Hero({ onPrimaryCta, onSecondaryCta }) {
   return (
     <section style={{
       paddingTop: '40px',
       paddingBottom: '8px',
       width: '100%',
-      maxWidth: '1100px',
+      maxWidth: '1240px',
       margin: '0 auto',
       textAlign: 'center',
     }}>
@@ -84,52 +86,10 @@ export default function Hero({ onPrimaryCta, onSecondaryCta }) {
         No credit card · No EHR integration · Your data is processed in-memory
       </div>
 
-      {/* product screenshot */}
+      {/* live dashboard preview with mock data */}
       <div className="hero-screenshot-frame">
-        <ScreenshotOrFallback />
+        <DashboardPreview />
       </div>
     </section>
-  )
-}
-
-function ScreenshotOrFallback() {
-  return (
-    <picture>
-      <img
-        src="/dashboard-hero.png"
-        alt="Payscope dashboard with biller score, AI analysis, flagged claims and chat panel"
-        className="hero-screenshot"
-        onError={(e) => {
-          e.currentTarget.style.display = 'none'
-          const fallback = e.currentTarget.nextElementSibling
-          if (fallback) fallback.style.display = 'flex'
-        }}
-      />
-      <div style={{
-        display: 'none',
-        alignItems: 'center', justifyContent: 'center',
-        minHeight: '320px',
-        border: '1px dashed var(--border-mid)',
-        background: 'var(--bg-panel)',
-        padding: '32px',
-        textAlign: 'center',
-      }}>
-        <div>
-          <div style={{
-            fontFamily: 'var(--font-sans)', fontSize: '0.62rem',
-            fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
-            color: 'var(--text-muted)', marginBottom: '10px',
-          }}>
-            Product screenshot placeholder
-          </div>
-          <div style={{
-            fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
-            color: 'var(--text)',
-          }}>
-            Save your screenshot to <code style={{ color: 'var(--primary-light)' }}>frontend/public/dashboard-hero.png</code>
-          </div>
-        </div>
-      </div>
-    </picture>
   )
 }
