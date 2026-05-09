@@ -25,11 +25,16 @@ function shapeUser(supaUser) {
   }
 }
 
+const DEV_USER = { id: 'dev', email: 'dev@local', name: 'Dev User', plan: 'Free' }
+const BYPASS = import.meta.env.VITE_DEV_BYPASS_AUTH === 'true'
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(BYPASS ? DEV_USER : null)
+  const [loading, setLoading] = useState(!BYPASS)
 
   useEffect(() => {
+    if (BYPASS) return
+
     let mounted = true
 
     supabase.auth.getSession().then(({ data: { session } }) => {
