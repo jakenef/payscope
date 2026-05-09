@@ -101,6 +101,14 @@ def analyze_claims(df: pd.DataFrame) -> dict:
         .rename(columns={"ptype": "payer"})
     )
 
+    date_range = None
+    if "date" in enriched.columns:
+        parsed = pd.to_datetime(enriched["date"], errors="coerce").dropna()
+        if not parsed.empty:
+            lo = parsed.min().strftime("%b %Y")
+            hi = parsed.max().strftime("%b %Y")
+            date_range = lo if lo == hi else f"{lo} – {hi}"
+
     return {
         "summary": {
             "total_charged": round(total_charged, 2),
@@ -111,6 +119,7 @@ def analyze_claims(df: pd.DataFrame) -> dict:
             "biller_score": biller_score,
             "total_claims": total_claims,
             "flagged_claims": flagged_claims,
+            "date_range": date_range,
         },
         "payer_breakdown": payer_agg.to_dict(orient="records"),
         "underpayment_table": flagged_rows.to_dict(orient="records"),

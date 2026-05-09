@@ -1,4 +1,5 @@
-import ScoreSidebar from './ScoreSidebar'
+import AuditScoreHero from './AuditScoreHero'
+import InfoPanel from './InfoPanel'
 import NarrativePanel from './NarrativePanel'
 import UnderpaymentTable from './UnderpaymentTable'
 import BenchmarkPanel from './BenchmarkPanel'
@@ -12,6 +13,7 @@ const MOCK_SUMMARY = {
   leakage_pct: 15.1,
   total_claims: 600,
   flagged_claims: 597,
+  date_range: 'Jan 2024 – Jun 2024',
 }
 
 const MOCK_NARRATIVE =
@@ -162,14 +164,17 @@ export default function DashboardPreview() {
       </div>
 
       {/* the dashboard itself */}
-      <div style={{ display: 'flex', gap: '14px', alignItems: 'stretch' }}>
-        <ScoreSidebar summary={MOCK_SUMMARY} />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <NarrativePanel narrative={MOCK_NARRATIVE} />
-          <BenchmarkPanel benchmarks={MOCK_BENCHMARKS} />
-          <UnderpaymentTable rows={MOCK_FLAGGED} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <AuditScoreHero summary={MOCK_SUMMARY} />
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'stretch' }}>
+          <InfoPanel summary={MOCK_SUMMARY} />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <NarrativePanel narrative={MOCK_NARRATIVE} />
+            <BenchmarkPanel benchmarks={MOCK_BENCHMARKS} />
+            <UnderpaymentTable rows={MOCK_FLAGGED} />
+          </div>
+          <MockChatSidebar />
         </div>
-        <MockChatSidebar />
       </div>
 
       {/* sample data caption */}

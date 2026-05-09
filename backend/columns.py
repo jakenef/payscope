@@ -10,6 +10,13 @@ CANONICAL_COLUMNS = {
     "paid": "Amount the payer actually paid (USD)",
 }
 
+OPTIONAL_COLUMNS = {
+    "date": "Date of service or claim date (e.g., 2024-01-15, DOS, D.O.S, Service Date, Claim Date)",
+}
+
+# Common header aliases for optional columns that won't be caught by exact name match
+_DATE_ALIASES = {"dos", "d.o.s", "service date", "date of service", "claim date", "date"}
+
 INFERENCE_SYSTEM_PROMPT = """You map raw CSV column headers from a medical billing export to a canonical schema.
 Return ONLY a JSON object mapping each canonical key to the matching raw column header.
 If no reasonable match exists for a key, use null for that key.
@@ -25,18 +32,26 @@ def _direct_match(columns):
             mapping[canonical] = lower_to_raw[canonical]
         else:
             return None
+    # Second pass: optional columns via alias set
+    for col_lower, col_raw in lower_to_raw.items():
+        if col_lower in _DATE_ALIASES:
+            mapping["date"] = col_raw
+            break
     return mapping
 
 
 def _ai_infer(columns, sample_rows):
     schema_lines = [f'  "{k}": {v}' for k, v in CANONICAL_COLUMNS.items()]
+    optional_lines = [f'  "{k}" (optional): {v}' for k, v in OPTIONAL_COLUMNS.items()]
     user_msg = (
         "Canonical schema:\n"
         + "\n".join(schema_lines)
+        + "\n\nOptional columns (include if present, null if absent):\n"
+        + "\n".join(optional_lines)
         + f"\n\nRaw column headers: {list(columns)}\n"
         + f"Sample rows (first 3):\n{json.dumps(sample_rows, default=str)}\n\n"
         "Return JSON: {\"cpt\": \"...\", \"description\": \"...\", \"ptype\": \"...\", "
-        "\"charged\": \"...\", \"paid\": \"...\"}"
+        "\"charged\": \"...\", \"paid\": \"...\", \"date\": \"...\"}"
     )
     response = chat(
         messages=[
@@ -50,6 +65,11 @@ def _ai_infer(columns, sample_rows):
     parsed = json.loads(response)
     cleaned = {}
     for canonical in CANONICAL_COLUMNS:
+        raw = parsed.get(canonical)
+        if raw is not None and raw in columns:
+            cleaned[canonical] = raw
+    # Optional columns
+    for canonical in OPTIONAL_COLUMNS:
         raw = parsed.get(canonical)
         if raw is not None and raw in columns:
             cleaned[canonical] = raw
