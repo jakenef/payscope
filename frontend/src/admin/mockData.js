@@ -1,12 +1,15 @@
 /**
  * Faux outreach data for dashboard design / integration-paused preview.
  *
- * Mock mode: development by default, unless VITE_ADMIN_USE_MOCK_DATA=false.
- * Production builds always use live Supabase (DEV is false).
+ * - VITE_ADMIN_USE_MOCK_DATA=true  → mock data (local dev and production builds)
+ * - VITE_ADMIN_USE_MOCK_DATA=false → always use real Supabase
+ * - unset → mock in dev only; production uses real Supabase
  */
 export function isAdminMockMode() {
-  if (import.meta.env.PROD) return false
-  return import.meta.env.VITE_ADMIN_USE_MOCK_DATA !== 'false'
+  const v = import.meta.env.VITE_ADMIN_USE_MOCK_DATA
+  if (v === 'true') return true
+  if (v === 'false') return false
+  return import.meta.env.DEV
 }
 
 const iso = (d) => d.toISOString()

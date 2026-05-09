@@ -230,9 +230,9 @@ export default function AdminApp() {
           }}>
             <strong style={{ color: 'var(--primary-light)' }}>Preview dataset</strong>
             {' '}— Showing faux ENT and dental practices, Lob/voice fields, and outreach events. Live NPI import, Lob, and Twilio controls are hidden.
-            To use real data locally, set{' '}
+            For real leads: set{' '}
             <code style={{ fontSize: '0.72rem', color: 'var(--text-bright)' }}>VITE_ADMIN_USE_MOCK_DATA=false</code>
-            {' '}in <code style={{ fontSize: '0.72rem' }}>.env.local</code> and restart the dev server.
+            {' '}in env (e.g. Vercel) and redeploy, or in <code style={{ fontSize: '0.72rem' }}>.env.local</code> for local dev.
           </div>
         )}
 

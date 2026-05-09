@@ -17,7 +17,7 @@ npm run dev      # dev server at http://localhost:5173
 npm run build    # production build
 npm run lint     # ESLint
 ```
-`/admin` in **dev** uses **preview outreach data** by default (no Supabase reads). Set `VITE_ADMIN_USE_MOCK_DATA=false` in `frontend/.env.local` to use real leads.
+`/admin` **preview data**: `VITE_ADMIN_USE_MOCK_DATA=true` enables faux leads (works on Vercel too). Omit or set `false` for real Supabase. Unset in dev still defaults to mock; unset in prod defaults to real.
 
 **Environment**: Copy `backend/.env.example` to `backend/.env` and set `OPENAI_API_KEY`. `OPENROUTER_API_KEY` is the fallback if OpenAI is unavailable. For `/admin` NPI import, add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `ADMIN_EMAILS` (comma-separated, same people as `frontend/src/admin/config.js`).
 
