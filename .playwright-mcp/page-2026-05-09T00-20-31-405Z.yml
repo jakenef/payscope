@@ -1,0 +1,23 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: Payscope
+      - generic [ref=e7]: Revenue Integrity
+    - generic [ref=e11]: Ready
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - text: Claims Analysis
+          - generic [ref=e16]: Upload to begin
+        - generic [ref=e17]:
+          - paragraph [ref=e19]: Upload a CSV of submitted claims to detect underpayments and downcoding against CMS Medicare benchmark rates.
+          - generic [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]: Drop CSV file here or click to browse
+            - generic [ref=e22]: "Columns required: Provider · Ptype · CPT · Description · Charged · Paid"
+      - generic [ref=e23]:
+        - generic [ref=e24]: CMS Medicare Rates 2024
+        - generic [ref=e25]: ·
+        - generic [ref=e26]: GPT-4o Analysis
+        - generic [ref=e27]: ·
+        - generic [ref=e28]: No data retained

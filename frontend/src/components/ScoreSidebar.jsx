@@ -1,43 +1,52 @@
-function ScoreRing({ score }) {
-  const radius = 54
-  const circumference = 2 * Math.PI * radius
-  const filled = (score / 100) * circumference
-  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444'
-  const label = score >= 80 ? 'Good' : score >= 60 ? 'Warning' : 'Critical'
-
-  return (
-    <div className="flex flex-col items-center">
-      <svg width="136" height="136" className="-rotate-90">
-        <circle cx="68" cy="68" r={radius} fill="none" stroke="#1e293b" strokeWidth="12" />
-        <circle
-          cx="68" cy="68" r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="12"
-          strokeDasharray={`${filled} ${circumference}`}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 0.6s ease' }}
-        />
-      </svg>
-      <div className="flex flex-col items-center -mt-20">
-        <span className="text-4xl font-bold" style={{ color }}>{score}</span>
-        <span className="text-slate-400 text-xs uppercase tracking-wide">/ 100</span>
-      </div>
-      <span
-        className="mt-3 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full"
-        style={{ color, background: `${color}22` }}
-      >
-        {label}
-      </span>
-    </div>
-  )
+function scoreStyle(score) {
+  if (score >= 80) return { color: '#52b788', track: '#1a3d28', label: 'Satisfactory' }
+  if (score >= 60) return { color: '#f0a050', track: '#3a2010', label: 'Warning' }
+  return { color: '#e05252', track: '#3a1414', label: 'Critical' }
 }
 
-function KpiRow({ label, value, color }) {
+function ScoreRing({ score }) {
+  const radius = 52
+  const circumference = 2 * Math.PI * radius
+  const filled = (score / 100) * circumference
+  const { color, track, label } = scoreStyle(score)
+
   return (
-    <div className="flex justify-between items-baseline py-2 border-b border-slate-700/50">
-      <span className="text-slate-400 text-sm">{label}</span>
-      <span className={`font-semibold ${color}`}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
+      <svg width="128" height="128" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="64" cy="64" r={radius} fill="none" stroke={track} strokeWidth="10" />
+        <circle
+          cx="64" cy="64" r={radius}
+          fill="none" stroke={color} strokeWidth="10"
+          strokeDasharray={`${filled} ${circumference}`}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dasharray 0.9s ease' }}
+        />
+      </svg>
+      <div style={{ marginTop: '-72px', textAlign: 'center', pointerEvents: 'none' }}>
+        <div style={{
+          fontFamily: 'var(--font-serif)',
+          fontSize: '2.6rem', color, lineHeight: 1,
+        }}>
+          {score}
+        </div>
+        <div style={{
+          fontFamily: 'var(--font-sans)', fontSize: '0.6rem', fontWeight: 500,
+          color: 'var(--text-muted)', letterSpacing: '0.08em', marginTop: '2px',
+        }}>
+          / 100
+        </div>
+      </div>
+      <div style={{ marginTop: '12px' }}>
+        <span style={{
+          fontFamily: 'var(--font-sans)', fontSize: '0.65rem', fontWeight: 600,
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          color, background: track,
+          border: `1px solid ${color}`,
+          padding: '2px 12px',
+        }}>
+          {label}
+        </span>
+      </div>
     </div>
   )
 }
@@ -49,19 +58,30 @@ function fmt(n) {
 export default function ScoreSidebar({ summary }) {
   const { biller_score, total_medicare_expected, total_paid, leakage_dollars, leakage_pct, total_claims, flagged_claims } = summary
 
+  const kpis = [
+    { label: 'Expected',  value: fmt(total_medicare_expected), color: 'var(--primary-light)' },
+    { label: 'Collected', value: fmt(total_paid),              color: 'var(--green)' },
+    { label: 'Leakage',   value: fmt(leakage_dollars),         color: 'var(--red)' },
+    { label: 'Leak Rate', value: `${leakage_pct}%`,            color: 'var(--red)' },
+    { label: 'Claims',    value: total_claims,                  color: 'var(--text-bright)' },
+    { label: 'Flagged',   value: flagged_claims,                color: 'var(--amber)' },
+  ]
+
   return (
-    <div className="bg-slate-800/50 rounded-2xl p-6 flex flex-col gap-4 min-w-[220px]">
-      <h2 className="text-slate-300 text-sm font-semibold uppercase tracking-widest text-center">
+    <div className="panel" style={{ minWidth: '210px', flexShrink: 0 }}>
+      <div className="panel-header">
         Biller Score
-      </h2>
-      <ScoreRing score={biller_score} />
-      <div className="mt-2">
-        <KpiRow label="Expected"  value={fmt(total_medicare_expected)} color="text-blue-400" />
-        <KpiRow label="Collected" value={fmt(total_paid)}              color="text-emerald-400" />
-        <KpiRow label="Leakage"   value={fmt(leakage_dollars)}         color="text-red-400" />
-        <KpiRow label="Leak rate" value={`${leakage_pct}%`}           color="text-red-400" />
-        <KpiRow label="Claims"    value={total_claims}                  color="text-slate-300" />
-        <KpiRow label="Flagged"   value={flagged_claims}                color="text-amber-400" />
+        <span className="panel-tag">BPI</span>
+      </div>
+      <div style={{ padding: '16px' }}>
+        <ScoreRing score={biller_score} />
+        <hr className="section-rule" style={{ margin: '14px 0' }} />
+        {kpis.map(({ label, value, color }) => (
+          <div className="kpi-row" key={label}>
+            <span className="kpi-label">{label}</span>
+            <span className="kpi-value" style={{ color }}>{value}</span>
+          </div>
+        ))}
       </div>
     </div>
   )

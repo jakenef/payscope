@@ -7,7 +7,7 @@ import PayerChart from './components/PayerChart'
 import NarrativePanel from './components/NarrativePanel'
 
 export default function App() {
-  const [status, setStatus] = useState('idle')  // 'idle' | 'loading' | 'done' | 'error'
+  const [status, setStatus] = useState('idle')
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
 
@@ -24,62 +24,178 @@ export default function App() {
     }
   }
 
+  const handleBack = () => {
+    setStatus('idle')
+    setData(null)
+    setError(null)
+  }
+
   return (
-    <div className="min-h-screen p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Payscope</h1>
-        <p className="text-slate-400 text-sm mt-1">Revenue Integrity Dashboard for Independent Physicians</p>
-      </div>
+    <div style={{ minHeight: '100vh' }}>
 
-      {/* Upload */}
-      <div className="mb-6">
-        <UploadZone onUpload={handleUpload} loading={status === 'loading'} />
-      </div>
-
-      {/* Error */}
-      {status === 'error' && (
-        <div className="bg-red-900/30 border border-red-700/40 rounded-xl p-4 mb-6 text-red-300 text-sm">
-          {error}
+      {/* ── Header ──────────────────────────────── */}
+      <header style={{
+        background: 'var(--bg-panel)',
+        borderBottom: '1px solid var(--border)',
+        padding: '0 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: '52px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+          <span style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: '1.35rem',
+            color: 'var(--text-bright)',
+            letterSpacing: '0.01em',
+          }}>
+            Payscope
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '0.65rem',
+            fontWeight: 500,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--primary)',
+          }}>
+            Revenue Integrity
+          </span>
         </div>
-      )}
 
-      {/* Dashboard */}
-      {status === 'done' && data && (
-        <div className="flex flex-col gap-6">
-          {/* Row 1: Score sidebar + Table + Chart */}
-          <div className="flex gap-6 items-start">
-            {/* Left: Score sidebar */}
-            <ScoreSidebar summary={data.summary} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {(status === 'done' || status === 'error') && (
+            <button className="btn" onClick={handleBack}>
+              ← New Analysis
+            </button>
+          )}
+          <StatusBadge status={status} />
+        </div>
+      </header>
 
-            {/* Right: Table + Chart stacked */}
-            <div className="flex flex-col gap-6 flex-1 min-w-0">
-              {data.underpayment_table.length > 0 ? (
-                <UnderpaymentTable rows={data.underpayment_table} />
-              ) : (
-                <div className="bg-emerald-900/30 border border-emerald-700/40 rounded-2xl p-6 text-emerald-300 text-sm">
-                  No flagged claims — payments are at or above thresholds.
+      {/* ── Main ────────────────────────────────── */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '28px 24px 48px' }}>
+
+        {/* Upload / idle */}
+        {(status === 'idle' || status === 'error') && (
+          <div className="fade-up" style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', minHeight: 'calc(100vh - 160px)',
+          }}>
+            <div className="panel" style={{ width: '100%', maxWidth: '520px' }}>
+              <div className="panel-header">
+                Claims Analysis
+                <span className="panel-tag">Upload to begin</span>
+              </div>
+              <div style={{ padding: '28px 24px 24px' }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{
+                    fontFamily: 'var(--font-sans)', fontSize: '0.8rem',
+                    color: 'var(--text-muted)', lineHeight: 1.6,
+                  }}>
+                    Upload a CSV of submitted claims to detect underpayments and downcoding against CMS Medicare benchmark rates.
+                  </p>
                 </div>
-              )}
-              {data.payer_breakdown.length > 0 && (
-                <PayerChart payers={data.payer_breakdown} />
-              )}
+                <UploadZone onUpload={handleUpload} />
+              </div>
+            </div>
+
+            {status === 'error' && (
+              <div style={{
+                width: '100%', maxWidth: '520px', marginTop: '10px',
+                padding: '10px 14px',
+                background: 'var(--red-bg)',
+                border: '1px solid var(--red)',
+                fontFamily: 'var(--font-sans)', fontSize: '0.78rem',
+                color: 'var(--red)',
+              }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{
+              marginTop: '20px', display: 'flex', gap: '12px',
+              fontFamily: 'var(--font-sans)', fontSize: '0.62rem',
+              fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: 'var(--text-dim)',
+            }}>
+              <span>CMS Medicare Rates 2024</span>
+              <span>·</span>
+              <span>GPT-4o Analysis</span>
+              <span>·</span>
+              <span>No data retained</span>
             </div>
           </div>
+        )}
 
-          {/* Row 2: AI Narrative */}
-          {data.ai_narrative && (
-            <NarrativePanel narrative={data.ai_narrative} />
-          )}
-        </div>
-      )}
+        {/* Loading */}
+        {status === 'loading' && (
+          <div className="fade-up" style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', minHeight: 'calc(100vh - 160px)', gap: '16px',
+          }}>
+            <div style={{
+              fontFamily: 'var(--font-serif)', fontSize: '1.5rem',
+              color: 'var(--text-bright)', letterSpacing: '0.01em',
+            }}>
+              Analyzing claims data
+              <span className="blink-cursor" />
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-sans)', fontSize: '0.72rem',
+              color: 'var(--text-muted)', letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}>
+              Comparing against CMS Medicare benchmark rates
+            </div>
+          </div>
+        )}
 
-      {/* Idle state */}
-      {status === 'idle' && (
-        <div className="text-center py-16 text-slate-600">
-          <p className="text-lg">Upload a claims CSV to generate your revenue integrity report</p>
-        </div>
-      )}
+        {/* Dashboard */}
+        {status === 'done' && data && (
+          <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+              <ScoreSidebar summary={data.summary} />
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {data.underpayment_table.length > 0 ? (
+                  <UnderpaymentTable rows={data.underpayment_table} />
+                ) : (
+                  <div className="panel">
+                    <div className="panel-header">Audit Result</div>
+                    <div style={{ padding: '16px', fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--green)' }}>
+                      No flagged claims — all payments at or above threshold.
+                    </div>
+                  </div>
+                )}
+                {data.payer_breakdown.length > 0 && (
+                  <PayerChart payers={data.payer_breakdown} />
+                )}
+              </div>
+            </div>
+            {data.ai_narrative && <NarrativePanel narrative={data.ai_narrative} />}
+          </div>
+        )}
+
+      </main>
+    </div>
+  )
+}
+
+function StatusBadge({ status }) {
+  const map = {
+    idle:    { color: 'var(--text-muted)',  dot: '#4a8898', label: 'Ready' },
+    loading: { color: 'var(--amber)',       dot: '#f0a050', label: 'Processing' },
+    done:    { color: 'var(--green)',       dot: '#52b788', label: 'Complete' },
+    error:   { color: 'var(--red)',         dot: '#e05252', label: 'Error' },
+  }
+  const { color, dot, label } = map[status] || map.idle
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dot, display: 'inline-block' }} />
+      <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', fontWeight: 500, color, letterSpacing: '0.04em' }}>
+        {label}
+      </span>
     </div>
   )
 }

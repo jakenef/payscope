@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 
-export default function UploadZone({ onUpload, loading }) {
+export default function UploadZone({ onUpload }) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef(null)
 
@@ -20,32 +20,31 @@ export default function UploadZone({ onUpload, loading }) {
       onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
-      onClick={() => !loading && inputRef.current?.click()}
-      className={`
-        w-full rounded-xl border-2 border-dashed p-8 text-center cursor-pointer
-        transition-colors duration-200
-        ${dragging ? 'border-blue-400 bg-blue-900/20' : 'border-slate-600 hover:border-slate-400'}
-        ${loading ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
+      onClick={() => inputRef.current?.click()}
+      className={`upload-zone${dragging ? ' dragging' : ''}`}
     >
       <input
         ref={inputRef}
         type="file"
         accept=".csv"
-        className="hidden"
+        style={{ display: 'none' }}
         onChange={(e) => handleFile(e.target.files[0])}
       />
-      {loading ? (
-        <p className="text-slate-400 text-sm">Analyzing claims...</p>
-      ) : (
-        <>
-          <p className="text-slate-300 font-medium">Drop your claims CSV here</p>
-          <p className="text-slate-500 text-sm mt-1">or click to browse</p>
-          <p className="text-slate-600 text-xs mt-2">
-            Columns: Provider, Ptype, Cpt, Description, Charged, Paid
-          </p>
-        </>
-      )}
+
+      <div style={{
+        fontFamily: 'var(--font-sans)', fontWeight: 600,
+        fontSize: '0.85rem', color: 'var(--text-bright)',
+        marginBottom: '6px',
+      }}>
+        {dragging ? 'Drop to upload' : 'Drop CSV file here or click to browse'}
+      </div>
+
+      <div style={{
+        fontFamily: 'var(--font-sans)', fontSize: '0.68rem',
+        color: 'var(--text-muted)', letterSpacing: '0.04em',
+      }}>
+        Columns required: Provider · Ptype · CPT · Description · Charged · Paid
+      </div>
     </div>
   )
 }

@@ -1,10 +1,23 @@
 import { useState } from 'react'
 
 function pctColor(pct) {
-  if (pct < 65) return 'text-red-400 font-semibold'
-  if (pct < 85) return 'text-amber-400'
-  return 'text-emerald-400'
+  if (pct < 65) return '#e05252'
+  if (pct < 85) return '#f0a050'
+  return '#52b788'
 }
+
+const headers = [
+  { key: 'cpt',               label: 'CPT' },
+  { key: 'payer',             label: 'Payer' },
+  { key: 'charged',           label: 'Charged' },
+  { key: 'paid',              label: 'Paid' },
+  { key: 'medicare_expected', label: 'Medicare' },
+  { key: 'downcode_pct',      label: 'Paid / Billed' },
+  { key: 'medicare_pct',      label: 'Paid / MCR' },
+  { key: 'medicare_gap',      label: 'Gap' },
+]
+
+const fmt = (n) => `$${Number(n).toFixed(2)}`
 
 export default function UnderpaymentTable({ rows }) {
   const [sortKey, setSortKey] = useState('medicare_gap')
@@ -17,53 +30,44 @@ export default function UnderpaymentTable({ rows }) {
 
   const sorted = [...rows].sort((a, b) => (a[sortKey] - b[sortKey]) * sortDir)
 
-  const headers = [
-    { key: 'cpt',          label: 'CPT' },
-    { key: 'payer',        label: 'Payer' },
-    { key: 'charged',      label: 'Charged' },
-    { key: 'paid',         label: 'Paid' },
-    { key: 'medicare_expected', label: 'Medicare' },
-    { key: 'downcode_pct', label: 'Paid/Billed' },
-    { key: 'medicare_pct', label: 'Paid/Medicare' },
-    { key: 'medicare_gap', label: 'Gap $' },
-  ]
-
-  const fmt = (n) => `$${Number(n).toFixed(2)}`
-
   return (
-    <div className="bg-slate-800/50 rounded-2xl p-4 overflow-x-auto">
-      <h3 className="text-slate-300 text-sm font-semibold uppercase tracking-widest mb-3">
-        Flagged Claims — {rows.length} rows
-      </h3>
-      <table className="w-full text-sm text-left">
-        <thead>
-          <tr>
-            {headers.map(h => (
-              <th
-                key={h.key}
-                onClick={() => toggle(h.key)}
-                className="pb-2 pr-4 text-slate-400 text-xs font-medium cursor-pointer hover:text-slate-200 whitespace-nowrap"
-              >
-                {h.label} {sortKey === h.key ? (sortDir === 1 ? '↑' : '↓') : ''}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((row, i) => (
-            <tr key={i} className="border-t border-slate-700/40 hover:bg-slate-700/20">
-              <td className="py-2 pr-4 text-blue-300 font-mono">{row.cpt}</td>
-              <td className="py-2 pr-4 text-slate-300">{row.payer}</td>
-              <td className="py-2 pr-4 text-slate-400">{fmt(row.charged)}</td>
-              <td className="py-2 pr-4 text-slate-300">{fmt(row.paid)}</td>
-              <td className="py-2 pr-4 text-slate-400">{fmt(row.medicare_expected)}</td>
-              <td className={`py-2 pr-4 ${pctColor(row.downcode_pct)}`}>{row.downcode_pct}%</td>
-              <td className={`py-2 pr-4 ${pctColor(row.medicare_pct)}`}>{row.medicare_pct}%</td>
-              <td className="py-2 text-red-400 font-semibold">{fmt(row.medicare_gap)}</td>
+    <div className="panel">
+      <div className="panel-header">
+        Flagged Claims — {rows.length} records
+        <span className="panel-tag">Click column to sort</span>
+      </div>
+      <div style={{ padding: '12px 16px', overflowX: 'auto' }}>
+        <table className="data-table">
+          <thead>
+            <tr>
+              {headers.map(h => (
+                <th key={h.key} onClick={() => toggle(h.key)}>
+                  {h.label}
+                  {sortKey === h.key && (
+                    <span style={{ marginLeft: '4px', color: 'var(--primary-light)' }}>
+                      {sortDir === 1 ? '↑' : '↓'}
+                    </span>
+                  )}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sorted.map((row, i) => (
+              <tr key={i}>
+                <td style={{ color: 'var(--primary-light)', fontWeight: 500 }}>{row.cpt}</td>
+                <td style={{ color: 'var(--text-bright)', fontFamily: 'var(--font-sans)', fontSize: '0.75rem' }}>{row.payer}</td>
+                <td style={{ color: 'var(--text-muted)' }}>{fmt(row.charged)}</td>
+                <td style={{ color: 'var(--text)' }}>{fmt(row.paid)}</td>
+                <td style={{ color: 'var(--text-muted)' }}>{fmt(row.medicare_expected)}</td>
+                <td style={{ color: pctColor(row.downcode_pct), fontWeight: 500 }}>{row.downcode_pct}%</td>
+                <td style={{ color: pctColor(row.medicare_pct), fontWeight: 500 }}>{row.medicare_pct}%</td>
+                <td style={{ color: '#e05252', fontWeight: 600 }}>{fmt(row.medicare_gap)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

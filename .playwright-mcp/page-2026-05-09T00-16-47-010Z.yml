@@ -1,0 +1,31 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: PAYSCOPE — REVENUE INTEGRITY SYSTEM v2.1
+    - generic [ref=e6]:
+      - generic [ref=e7]: _
+      - generic [ref=e8]: □
+      - generic [ref=e9]: ×
+  - generic [ref=e11]: ● READY FOR INPUT
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - text: CLAIMS ANALYSIS MODULE — LOAD DATA FILE
+          - generic [ref=e16]: "UNIT: RIS-7"
+        - generic [ref=e17]:
+          - generic [ref=e18]: PAYSCOPE
+          - generic [ref=e19]: REVENUE INTEGRITY SYSTEM FOR INDEPENDENT PHYSICIANS
+          - generic [ref=e20]:
+            - generic [ref=e21]: "SELECT FILE TO ANALYZE:"
+            - generic [ref=e22] [cursor=pointer]:
+              - generic [ref=e27]: "[ CLICK OR DRAG CSV FILE ]"
+              - generic [ref=e28]: "REQUIRED COLUMNS: PROVIDER · PTYPE · CPT · DESCRIPTION · CHARGED · PAID"
+      - generic [ref=e29]:
+        - generic [ref=e30]: CMS MEDICARE RATES 2024
+        - generic [ref=e31]: "|"
+        - generic [ref=e32]: GPT-4o DIAGNOSTIC ENGINE
+        - generic [ref=e33]: "|"
+        - generic [ref=e34]: HIPAA COMPLIANT
+  - generic [ref=e35]:
+    - generic [ref=e36]: PAYSCOPE RIS v2.1 | © 1994 MEDITECH SYSTEMS INC.
+    - generic [ref=e37]: 6:16:46 PM | IDLE
