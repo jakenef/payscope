@@ -57,6 +57,9 @@ export default function App() {
       {/* ── Header ──────────────────────────────── */}
       <header
         style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
           background: "var(--bg-panel)",
           borderBottom: "1px solid var(--border)",
           padding: "0 24px",
@@ -267,7 +270,9 @@ export default function App() {
                   alignItems: "flex-start",
                 }}
               >
-                <InfoPanel summary={data.summary} />
+                <div style={{ position: "sticky", top: "72px", alignSelf: "flex-start" }}>
+                  <InfoPanel summary={data.summary} />
+                </div>
                 <div
                   style={{
                     flex: 1,
@@ -302,7 +307,9 @@ export default function App() {
                     <PayerChart payers={data.payer_breakdown} />
                   )}
                 </div>
-                <ChatPanel analysis={data} />
+                <div style={{ position: "sticky", top: "72px", alignSelf: "flex-start" }}>
+                  <ChatPanel analysis={data} />
+                </div>
               </div>
             </div>
           )}
