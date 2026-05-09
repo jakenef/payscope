@@ -119,14 +119,14 @@ function fmt(n) {
 export default function AuditScoreHero({ summary }) {
   const {
     biller_score,
-    total_peer_expected,
+    total_charged,
     total_paid,
     leakage_dollars,
     date_range,
   } = summary;
   const collectionPct =
-    total_peer_expected > 0
-      ? Math.round((total_paid / total_peer_expected) * 100)
+    total_charged > 0
+      ? Math.round((total_paid / total_charged) * 100)
       : 0;
 
   return (
@@ -155,7 +155,7 @@ export default function AuditScoreHero({ summary }) {
           >
             You billed{" "}
             <span style={{ color: "var(--primary-light)", fontSize: "3.1rem" }}>
-              {fmt(total_peer_expected)}
+              {fmt(total_charged)}
             </span>{" "}
             and collected{" "}
             <span style={{ color: "var(--green)", fontSize: "3.1rem" }}>{fmt(total_paid)}</span> —

@@ -41,7 +41,7 @@ export default function PayerChart({ payers }) {
               width={80} axisLine={false} tickLine={false}
             />
             <Tooltip
-              formatter={(v) => [`${v}%`, 'Variance vs Peer']}
+              formatter={(v) => [`${v}%`, 'vs. your typical rate']}
               contentStyle={{
                 background: '#122830',
                 border: '1px solid #1e4a55',

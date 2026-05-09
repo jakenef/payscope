@@ -20,7 +20,7 @@ def test_compute_baselines_empty_df():
     assert result == {}
 
 
-from analyzer import enrich_claims, DOWNCODE_FLAG_THRESHOLD, compute_biller_score, analyze_claims
+from analyzer import enrich_claims, compute_biller_score, analyze_claims
 
 
 def test_enrich_adds_peer_expected(baselines_df):
@@ -50,12 +50,13 @@ def test_enrich_flags_when_peer_pct_below_80(baselines_df):
     assert flagged.iloc[0]["flagged"] == True
 
 
-def test_enrich_flags_when_downcode_pct_below_80(sample_df):
+def test_enrich_unflagged_when_only_downcode_low(sample_df):
     baselines = compute_baselines(sample_df)
     result = enrich_claims(sample_df.copy(), baselines_lookup=baselines)
-    # ALPHA/99204: paid $30 / charged $200 = 15% — flagged by downcode rule
+    # ALPHA/99204: paid $30 / charged $200 = 15% — low downcode_pct but NOT flagged
+    # (downcode_pct is no longer a flag trigger; only peer_pct and contracted_pct are)
     row = result[(result["ptype"] == "ALPHA") & (result["cpt"] == "99204")].iloc[0]
-    assert row["flagged"] == True
+    assert row["flagged"] == False
 
 
 def test_enrich_does_not_drop_unknown_cpt():
@@ -84,7 +85,7 @@ def test_biller_score_zero():
 
 
 def test_biller_score_typical():
-    # collection_rate=0.87, flag_rate=0.25 → (0.87*0.5 + 0.75*0.5)*100 = 81.0
+    # collection_rate capped at 1.0 (87% > 85% target), flag_rate=0.25 → (1.0*0.25 + 0.75*0.75)*100 = 81.25
     score = compute_biller_score(87.0, 100.0, 2, 8)
     assert score == 81
 

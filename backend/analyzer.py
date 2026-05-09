@@ -64,12 +64,11 @@ def enrich_claims(df: pd.DataFrame, baselines_lookup: dict | None = None, contra
         df["contracted_pct"] = pd.NA
         df["contracted_gap"] = pd.NA
 
-    base_flag = df["downcode_pct"] < DOWNCODE_FLAG_THRESHOLD * 100
     peer_flag = df["peer_pct"].notna() & (df["peer_pct"] < PEER_FLAG_THRESHOLD * 100)
     contracted_flag = df["contracted_pct"].notna() & (
         df["contracted_pct"] < CONTRACTED_FLAG_THRESHOLD * 100
     )
-    df["flagged"] = base_flag | peer_flag | contracted_flag
+    df["flagged"] = peer_flag | contracted_flag
     return df
 
 
@@ -81,9 +80,9 @@ def compute_biller_score(
 ) -> int:
     if total_billed == 0 or total_claims == 0:
         return 0
-    collection_rate = min(1.0, total_paid / total_billed)
+    collection_rate = min(1.0, total_paid / (total_billed * 0.85))
     flag_rate = flagged_claims / total_claims
-    raw = (collection_rate * 0.5 + (1 - flag_rate) * 0.5) * 100
+    raw = (collection_rate * 0.25 + (1 - flag_rate) * 0.75) * 100
     return int(max(0, min(100, round(raw))))
 
 

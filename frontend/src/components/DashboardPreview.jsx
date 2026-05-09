@@ -7,7 +7,7 @@ import BenchmarkPanel from './BenchmarkPanel'
 const MOCK_SUMMARY = {
   biller_score: 60,
   total_charged: 197643,
-  total_peer_expected: 82438,
+  total_peer_expected: 174677,
   total_paid: 69993,
   leakage_dollars: 12446,
   leakage_pct: 15.1,

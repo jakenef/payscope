@@ -11,9 +11,9 @@ const baseHeaders = [
   { key: 'payer',         label: 'Payer' },
   { key: 'charged',       label: 'Charged' },
   { key: 'paid',          label: 'Paid' },
-  { key: 'peer_expected', label: 'Peer Exp.' },
+  { key: 'peer_expected', label: 'Typical' },
   { key: 'downcode_pct',  label: 'Paid / Billed' },
-  { key: 'peer_pct',      label: 'Paid / Peer' },
+  { key: 'peer_pct',      label: 'Paid / Typical' },
   { key: 'peer_gap',      label: 'Gap' },
 ]
 const contractHeaders = [
