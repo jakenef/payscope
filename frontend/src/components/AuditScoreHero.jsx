@@ -1,9 +1,13 @@
+import { useState, useEffect } from "react";
+
 function scoreStyle(score) {
-  if (score >= 80)
-    return { color: "#52b788", track: "#1a3d28", label: "Satisfactory" };
-  if (score >= 60)
-    return { color: "#f0a050", track: "#3a2010", label: "Warning" };
-  return { color: "#e05252", track: "#3a1414", label: "Critical" };
+  if (score >= 85)
+    return { color: "#52b788", track: "#1a3d28", label: "Excellent" };
+  if (score >= 70)
+    return { color: "#7bc8a0", track: "#1e3530", label: "Good" };
+  if (score >= 50)
+    return { color: "#f0a050", track: "#3a2010", label: "Fair" };
+  return { color: "#e05252", track: "#3a1414", label: "Needs Attention" };
 }
 
 function ScoreRing({ score }) {
@@ -11,6 +15,11 @@ function ScoreRing({ score }) {
   const circumference = 2 * Math.PI * radius;
   const filled = (score / 100) * circumference;
   const { color, track, label } = scoreStyle(score);
+  const [animatedFilled, setAnimatedFilled] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimatedFilled(filled), 50);
+    return () => clearTimeout(t);
+  }, [filled]);
 
   return (
     <div
@@ -29,7 +38,7 @@ function ScoreRing({ score }) {
             r={radius}
             fill="none"
             stroke={track}
-            strokeWidth="12"
+            strokeWidth="18"
           />
           <circle
             cx="98"
@@ -37,8 +46,8 @@ function ScoreRing({ score }) {
             r={radius}
             fill="none"
             stroke={color}
-            strokeWidth="12"
-            strokeDasharray={`${filled} ${circumference}`}
+            strokeWidth="18"
+            strokeDasharray={`${animatedFilled} ${circumference}`}
             strokeLinecap="round"
             style={{ transition: "stroke-dasharray 0.9s ease" }}
           />
@@ -82,13 +91,14 @@ function ScoreRing({ score }) {
           style={{
             fontFamily: "var(--font-sans)",
             fontSize: "0.65rem",
-            fontWeight: 600,
+            fontWeight: 700,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             color,
             background: track,
             border: `1px solid ${color}`,
-            padding: "3px 14px",
+            borderRadius: "999px",
+            padding: "5px 18px",
           }}
         >
           {label}

@@ -1,7 +1,10 @@
+import { useState, useEffect } from 'react'
+
 function scoreStyle(score) {
-  if (score >= 80) return { color: '#52b788', track: '#1a3d28', label: 'Satisfactory' }
-  if (score >= 60) return { color: '#f0a050', track: '#3a2010', label: 'Warning' }
-  return { color: '#e05252', track: '#3a1414', label: 'Critical' }
+  if (score >= 85) return { color: '#52b788', track: '#1a3d28', label: 'Excellent' }
+  if (score >= 70) return { color: '#7bc8a0', track: '#1e3530', label: 'Good' }
+  if (score >= 50) return { color: '#f0a050', track: '#3a2010', label: 'Fair' }
+  return { color: '#e05252', track: '#3a1414', label: 'Needs Attention' }
 }
 
 function ScoreRing({ score }) {
@@ -9,16 +12,21 @@ function ScoreRing({ score }) {
   const circumference = 2 * Math.PI * radius
   const filled = (score / 100) * circumference
   const { color, track, label } = scoreStyle(score)
+  const [animatedFilled, setAnimatedFilled] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => setAnimatedFilled(filled), 50)
+    return () => clearTimeout(t)
+  }, [filled])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 0' }}>
       <div style={{ position: 'relative', width: '128px', height: '128px' }}>
         <svg width="128" height="128" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="64" cy="64" r={radius} fill="none" stroke={track} strokeWidth="10" />
+          <circle cx="64" cy="64" r={radius} fill="none" stroke={track} strokeWidth="14" />
           <circle
             cx="64" cy="64" r={radius}
-            fill="none" stroke={color} strokeWidth="10"
-            strokeDasharray={`${filled} ${circumference}`}
+            fill="none" stroke={color} strokeWidth="14"
+            strokeDasharray={`${animatedFilled} ${circumference}`}
             strokeLinecap="round"
             style={{ transition: 'stroke-dasharray 0.9s ease' }}
           />
@@ -44,11 +52,12 @@ function ScoreRing({ score }) {
       </div>
       <div style={{ marginTop: '12px' }}>
         <span style={{
-          fontFamily: 'var(--font-sans)', fontSize: '0.65rem', fontWeight: 600,
+          fontFamily: 'var(--font-sans)', fontSize: '0.65rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
           color, background: track,
           border: `1px solid ${color}`,
-          padding: '2px 12px',
+          borderRadius: '999px',
+          padding: '4px 14px',
         }}>
           {label}
         </span>
