@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { sendChat } from '../api/chat'
 
 const SUGGESTED_PROMPTS = [
@@ -125,13 +127,13 @@ export default function ChatPanel({ analysis }) {
               fontFamily: 'var(--font-sans)',
               fontSize: '0.8rem',
               lineHeight: 1.55,
-              whiteSpace: 'pre-wrap',
               padding: '8px 10px',
               border: '1px solid',
               ...(m.role === 'user'
                 ? {
                     alignSelf: 'flex-end',
                     maxWidth: '88%',
+                    whiteSpace: 'pre-wrap',
                     background: 'rgba(42, 157, 143, 0.10)',
                     borderColor: 'var(--primary-dark)',
                     color: 'var(--text-bright)',
@@ -145,7 +147,26 @@ export default function ChatPanel({ analysis }) {
                   }),
             }}
           >
-            {m.content}
+            {m.role === 'user' ? m.content : (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => <p style={{ margin: '0 0 6px' }}>{children}</p>,
+                  ul: ({ children }) => <ul style={{ margin: '4px 0 6px', paddingLeft: '18px' }}>{children}</ul>,
+                  ol: ({ children }) => <ol style={{ margin: '4px 0 6px', paddingLeft: '18px' }}>{children}</ol>,
+                  li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
+                  strong: ({ children }) => <strong style={{ color: 'var(--text-bright)', fontWeight: 600 }}>{children}</strong>,
+                  code: ({ inline, children }) => inline
+                    ? <code style={{ background: 'var(--bg-dark)', padding: '1px 4px', fontSize: '0.75em', fontFamily: 'monospace' }}>{children}</code>
+                    : <pre style={{ background: 'var(--bg-dark)', padding: '8px', overflowX: 'auto', fontSize: '0.75em', margin: '4px 0' }}><code>{children}</code></pre>,
+                  h1: ({ children }) => <p style={{ fontWeight: 700, color: 'var(--text-bright)', margin: '6px 0 4px' }}>{children}</p>,
+                  h2: ({ children }) => <p style={{ fontWeight: 700, color: 'var(--text-bright)', margin: '6px 0 4px' }}>{children}</p>,
+                  h3: ({ children }) => <p style={{ fontWeight: 600, color: 'var(--text-bright)', margin: '4px 0 2px' }}>{children}</p>,
+                }}
+              >
+                {m.content}
+              </ReactMarkdown>
+            )}
           </div>
         ))}
 
