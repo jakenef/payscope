@@ -1,69 +1,78 @@
-from rates import RATES
-
-
-def test_rates_contains_common_ent_codes():
-    required = ["99213", "99214", "30520", "69210", "92511", "31231"]
-    for code in required:
-        assert code in RATES, f"Missing CPT {code} in RATES"
-
-
-def test_rates_values_are_positive_floats():
-    for code, rate in RATES.items():
-        assert isinstance(rate, float), f"Rate for {code} is not a float"
-        assert rate > 0, f"Rate for {code} is not positive"
-
-
+from baselines import compute_baselines
 import pandas as pd
-from analyzer import enrich_claims, MEDICARE_FLAG_THRESHOLD, DOWNCODE_FLAG_THRESHOLD
 
 
-def test_enrich_adds_medicare_expected(sample_df):
-    result = enrich_claims(sample_df.copy())
-    assert "medicare_expected" in result.columns
-    aetna_99213 = result[(result["ptype"] == "AETNA") & (result["cpt"] == "99213")].iloc[0]
-    from rates import RATES
-    assert aetna_99213["medicare_expected"] == RATES["99213"]
+def test_compute_baselines_group_median(baselines_df):
+    # AETNA/99213 has 6 claims: [70,80,85,90,95,100] → median = (85+90)/2 = 87.5
+    baselines = compute_baselines(baselines_df)
+    assert baselines[("aetna", "99213")] == 87.5
+
+
+def test_compute_baselines_fallback_to_cpt_median(baselines_df):
+    # BC/BS has 1 claim for 99213 → falls back to CPT-wide median
+    # All 99213 paid values: [70,80,85,90,93,95,100] → sorted median = 90.0
+    baselines = compute_baselines(baselines_df)
+    assert baselines[("bc/bs", "99213")] == 90.0
+
+
+def test_compute_baselines_empty_df():
+    result = compute_baselines(pd.DataFrame(columns=["ptype", "cpt", "paid"]))
+    assert result == {}
+
+
+from analyzer import enrich_claims, DOWNCODE_FLAG_THRESHOLD, compute_biller_score, analyze_claims
+
+
+def test_enrich_adds_peer_expected(baselines_df):
+    baselines = compute_baselines(baselines_df)
+    result = enrich_claims(baselines_df.copy(), baselines_lookup=baselines)
+    aetna_rows = result[(result["ptype"] == "AETNA") & (result["cpt"] == "99213")]
+    assert (aetna_rows["peer_expected"] == 87.5).all()
 
 
 def test_enrich_calculates_downcode_pct(sample_df):
-    result = enrich_claims(sample_df.copy())
+    baselines = compute_baselines(sample_df)
+    result = enrich_claims(sample_df.copy(), baselines_lookup=baselines)
     row = result[(result["ptype"] == "AETNA") & (result["cpt"] == "99213")].iloc[0]
     expected_pct = round(58.97 / 120.00 * 100, 1)
     assert row["downcode_pct"] == expected_pct
 
 
-def test_enrich_calculates_medicare_pct(sample_df):
-    result = enrich_claims(sample_df.copy())
-    row = result[(result["ptype"] == "AETNA") & (result["cpt"] == "99213")].iloc[0]
-    from rates import RATES
-    expected_pct = round(58.97 / RATES["99213"] * 100, 1)
-    assert row["medicare_pct"] == expected_pct
+def test_enrich_flags_when_peer_pct_below_80(baselines_df):
+    low_row = pd.DataFrame([
+        {"ptype": "AETNA", "cpt": "99213", "description": "OFFICE VISIT EST", "charged": 120.0, "paid": 40.0}
+    ])
+    df = pd.concat([baselines_df, low_row], ignore_index=True)
+    baselines = compute_baselines(df)
+    result = enrich_claims(df.copy(), baselines_lookup=baselines)
+    flagged = result[(result["ptype"] == "AETNA") & (result["cpt"] == "99213") & (result["paid"] == 40.0)]
+    assert len(flagged) == 1
+    assert flagged.iloc[0]["flagged"] == True
 
 
-def test_enrich_flags_severe_underpayment(sample_df):
-    result = enrich_claims(sample_df.copy())
-    # AETNA/30520: paid $140.61 vs Medicare $563.26 = 24.9% — should be flagged
-    row = result[(result["ptype"] == "AETNA") & (result["cpt"] == "30520")].iloc[0]
+def test_enrich_flags_when_downcode_pct_below_80(sample_df):
+    baselines = compute_baselines(sample_df)
+    result = enrich_claims(sample_df.copy(), baselines_lookup=baselines)
+    # ALPHA/99204: paid $30 / charged $200 = 15% — flagged by downcode rule
+    row = result[(result["ptype"] == "ALPHA") & (result["cpt"] == "99204")].iloc[0]
     assert row["flagged"] == True
 
 
-def test_enrich_drops_unknown_cpt_codes():
+def test_enrich_does_not_drop_unknown_cpt():
     df = pd.DataFrame([
         {"ptype": "AETNA", "cpt": "00000", "description": "UNKNOWN", "charged": 100.0, "paid": 50.0},
     ])
-    result = enrich_claims(df.copy())
-    assert len(result) == 0
+    result = enrich_claims(df.copy(), baselines_lookup={})
+    assert len(result) == 1
+    assert pd.isna(result.iloc[0]["peer_expected"])
 
 
 def test_enrich_graceful_on_zero_charged():
     df = pd.DataFrame([
         {"ptype": "AETNA", "cpt": "99213", "description": "OFFICE VISIT", "charged": 0.0, "paid": 50.0},
     ])
-    result = enrich_claims(df.copy())
+    result = enrich_claims(df.copy(), baselines_lookup={})
     assert len(result) == 0
-
-
-from analyzer import compute_biller_score, analyze_claims
 
 
 def test_biller_score_perfect():
@@ -75,9 +84,9 @@ def test_biller_score_zero():
 
 
 def test_biller_score_typical():
-    # payment_ratio=0.87, flag_rate=0.25 → (0.87*0.7 + 0.75*0.3)*100 = 83.4
+    # collection_rate=0.87, flag_rate=0.25 → (0.87*0.5 + 0.75*0.5)*100 = 81.0
     score = compute_biller_score(87.0, 100.0, 2, 8)
-    assert score == 83
+    assert score == 81
 
 
 def test_analyze_claims_returns_required_keys(sample_df):
@@ -92,22 +101,23 @@ def test_analyze_claims_summary_totals(sample_df):
     result = analyze_claims(sample_df.copy())
     s = result["summary"]
     assert s["total_paid"] > 0
-    assert s["total_medicare_expected"] > 0
+    assert "total_peer_expected" in s
     assert 0 <= s["biller_score"] <= 100
     assert s["flagged_claims"] <= s["total_claims"]
 
 
-def test_analyze_claims_leakage_is_medicare_minus_paid(sample_df):
+def test_analyze_claims_leakage_is_peer_based(sample_df):
     result = analyze_claims(sample_df.copy())
     s = result["summary"]
-    expected_leakage = round(s["total_medicare_expected"] - s["total_paid"], 2)
-    assert s["leakage_dollars"] == expected_leakage
+    if s["total_peer_expected"] > 0:
+        expected_leakage = round(s["total_peer_expected"] - s["total_paid"], 2)
+        assert s["leakage_dollars"] == expected_leakage
 
 
 def test_underpayment_table_sorted_worst_first(sample_df):
     result = analyze_claims(sample_df.copy())
-    gaps = [row["medicare_gap"] for row in result["underpayment_table"]]
-    assert gaps == sorted(gaps)  # ascending = most negative (worst) first
+    gaps = [row["peer_gap"] for row in result["underpayment_table"] if row["peer_gap"] is not None]
+    assert gaps == sorted(gaps)
 
 
 def test_payer_breakdown_has_all_payers(sample_df):

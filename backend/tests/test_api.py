@@ -49,9 +49,12 @@ def test_analyze_summary_types():
     assert isinstance(s["leakage_pct"], float)
 
 
-def test_analyze_returns_422_for_unrecognized_cpts():
+def test_analyze_processes_any_cpt():
+    # All CPT codes are valid now — baselines are self-derived from the uploaded data
     response = client.post(
         "/api/analyze",
         files={"file": ("claims.csv", io.BytesIO(NO_KNOWN_CPT_CSV.encode()), "text/csv")},
     )
-    assert response.status_code == 422
+    assert response.status_code == 200
+    data = response.json()
+    assert data["summary"]["total_claims"] == 1

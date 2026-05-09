@@ -20,7 +20,7 @@ export default function PayerChart({ payers }) {
   return (
     <div className="panel">
       <div className="panel-header">
-        Payer Variance vs. Medicare
+        Payer Variance
         <span className="panel-tag">% delta</span>
       </div>
       <div style={{ padding: '12px 16px 8px' }}>
@@ -41,7 +41,7 @@ export default function PayerChart({ payers }) {
               width={80} axisLine={false} tickLine={false}
             />
             <Tooltip
-              formatter={(v) => [`${v}%`, 'Variance vs Medicare']}
+              formatter={(v) => [`${v}%`, 'Variance vs Peer']}
               contentStyle={{
                 background: '#122830',
                 border: '1px solid #1e4a55',

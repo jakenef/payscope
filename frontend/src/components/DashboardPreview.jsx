@@ -7,7 +7,7 @@ import BenchmarkPanel from './BenchmarkPanel'
 const MOCK_SUMMARY = {
   biller_score: 60,
   total_charged: 197643,
-  total_medicare_expected: 82438,
+  total_peer_expected: 82438,
   total_paid: 69993,
   leakage_dollars: 12446,
   leakage_pct: 15.1,
@@ -17,10 +17,10 @@ const MOCK_SUMMARY = {
 }
 
 const MOCK_NARRATIVE =
-  "MOLINA and WELLPOINT are underpaying significantly — variances of -53.5% and -45.3% against Medicare expected. " +
+  "MOLINA and WELLPOINT are underpaying significantly — paying 46% and 55% of your typical rate for the same procedures. " +
   "Submucous resection (30140) and septoplasty (30520) show the worst gaps, suggesting a documentation or modifier issue " +
   "specific to those procedures. Three actions: (1) audit the last 30 days of MOLINA claims for missing modifiers, " +
-  "(2) request a fee schedule review with WELLPOINT — they're underpaying by nearly half of expected, " +
+  "(2) request a fee schedule review with WELLPOINT — they're paying well below what other payers pay for the same codes, " +
   "(3) flag 30140 and 30520 for prior-auth review going forward."
 
 const MOCK_BENCHMARKS = {
@@ -39,7 +39,7 @@ const MOCK_BENCHMARKS = {
       higher_is_better: false, unit: '%', percentile: 28,
     },
     {
-      key: 'payment_ratio_pct', label: 'Paid vs Medicare expected',
+      key: 'payment_ratio_pct', label: 'Collection Rate',
       user: 84.9, p25: 82.42, median: 89.18, p75: 94.28,
       higher_is_better: true, unit: '%', percentile: 35,
     },
@@ -47,15 +47,15 @@ const MOCK_BENCHMARKS = {
 }
 
 const MOCK_FLAGGED = [
-  { cpt: '30520', payer: 'ANTHEM',    charged: 893.22,  paid: 233.39, medicare_expected: 563.26, downcode_pct: 26.1, medicare_pct: 41.4, medicare_gap: -329.87 },
-  { cpt: '30140', payer: 'WELLPOINT', charged: 731.49,  paid: 128.51, medicare_expected: 394.93, downcode_pct: 17.6, medicare_pct: 32.5, medicare_gap: -266.42 },
-  { cpt: '30140', payer: 'ANTHEM',    charged: 724.63,  paid: 158.04, medicare_expected: 394.93, downcode_pct: 21.8, medicare_pct: 40.0, medicare_gap: -236.89 },
-  { cpt: '30140', payer: 'ANTHEM',    charged: 528.35,  paid: 159.68, medicare_expected: 394.93, downcode_pct: 30.2, medicare_pct: 40.4, medicare_gap: -235.25 },
-  { cpt: '30520', payer: 'HUMANA',    charged: 892.05,  paid: 359.78, medicare_expected: 563.26, downcode_pct: 40.3, medicare_pct: 63.9, medicare_gap: -203.48 },
-  { cpt: '60220', payer: 'ANTHEM',    charged: 996.81,  paid: 518.10, medicare_expected: 714.47, downcode_pct: 52.0, medicare_pct: 72.5, medicare_gap: -196.37 },
-  { cpt: '60220', payer: 'ANTHEM',    charged: 1184.11, paid: 528.05, medicare_expected: 714.47, downcode_pct: 44.6, medicare_pct: 73.9, medicare_gap: -186.42 },
-  { cpt: '30520', payer: 'ANTHEM',    charged: 837.26,  paid: 409.22, medicare_expected: 563.26, downcode_pct: 48.9, medicare_pct: 72.7, medicare_gap: -154.04 },
-  { cpt: '60220', payer: 'KAISER',    charged: 1200.44, paid: 582.14, medicare_expected: 714.47, downcode_pct: 48.5, medicare_pct: 81.5, medicare_gap: -132.33 },
+  { cpt: '30520', payer: 'ANTHEM',    charged: 893.22,  paid: 233.39, peer_expected: 563.26, downcode_pct: 26.1, peer_pct: 41.4, peer_gap: -329.87 },
+  { cpt: '30140', payer: 'WELLPOINT', charged: 731.49,  paid: 128.51, peer_expected: 394.93, downcode_pct: 17.6, peer_pct: 32.5, peer_gap: -266.42 },
+  { cpt: '30140', payer: 'ANTHEM',    charged: 724.63,  paid: 158.04, peer_expected: 394.93, downcode_pct: 21.8, peer_pct: 40.0, peer_gap: -236.89 },
+  { cpt: '30140', payer: 'ANTHEM',    charged: 528.35,  paid: 159.68, peer_expected: 394.93, downcode_pct: 30.2, peer_pct: 40.4, peer_gap: -235.25 },
+  { cpt: '30520', payer: 'HUMANA',    charged: 892.05,  paid: 359.78, peer_expected: 563.26, downcode_pct: 40.3, peer_pct: 63.9, peer_gap: -203.48 },
+  { cpt: '60220', payer: 'ANTHEM',    charged: 996.81,  paid: 518.10, peer_expected: 714.47, downcode_pct: 52.0, peer_pct: 72.5, peer_gap: -196.37 },
+  { cpt: '60220', payer: 'ANTHEM',    charged: 1184.11, paid: 528.05, peer_expected: 714.47, downcode_pct: 44.6, peer_pct: 73.9, peer_gap: -186.42 },
+  { cpt: '30520', payer: 'ANTHEM',    charged: 837.26,  paid: 409.22, peer_expected: 563.26, downcode_pct: 48.9, peer_pct: 72.7, peer_gap: -154.04 },
+  { cpt: '60220', payer: 'KAISER',    charged: 1200.44, paid: 582.14, peer_expected: 714.47, downcode_pct: 48.5, peer_pct: 81.5, peer_gap: -132.33 },
 ]
 
 const MOCK_PROMPTS = [

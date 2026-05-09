@@ -61,8 +61,7 @@ export default function ContractsPanel({ onChange }) {
           marginBottom: '20px',
         }}>
           Upload your insurance contract PDFs. Payscope extracts contracted rates
-          and uses them — alongside Medicare benchmarks — to flag claims paid below
-          what your contract guarantees.
+          and uses them to flag claims paid below what your contract guarantees.
         </p>
 
         <PdfDropZone onFile={handleFile} parsing={parsing} />
@@ -154,7 +153,6 @@ function ReviewModal({ contract, onSave, onCancel }) {
         .map((r) => ({
           cpt: String(r.cpt).trim(),
           description: r.description || null,
-          pct_of_medicare: r.pct_of_medicare !== null && r.pct_of_medicare !== '' ? Number(r.pct_of_medicare) : null,
           allowed_amount: r.allowed_amount !== null && r.allowed_amount !== '' ? Number(r.allowed_amount) : null,
         })),
     }
@@ -226,8 +224,7 @@ function ReviewModal({ contract, onSave, onCancel }) {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 <th style={thStyle}>CPT</th>
-                <th style={{ ...thStyle, width: '40%' }}>Description</th>
-                <th style={thStyle}>% MCR</th>
+                <th style={{ ...thStyle, width: '50%' }}>Description</th>
                 <th style={thStyle}>Allowed $</th>
                 <th style={thStyle}></th>
               </tr>
@@ -240,9 +237,6 @@ function ReviewModal({ contract, onSave, onCancel }) {
                   </td>
                   <td style={tdStyle}>
                     <input value={r.description || ''} onChange={(e) => updateRate(i, 'description', e.target.value)} style={cellInput} />
-                  </td>
-                  <td style={tdStyle}>
-                    <input type="number" step="any" value={r.pct_of_medicare ?? ''} onChange={(e) => updateRate(i, 'pct_of_medicare', e.target.value)} style={cellInput} />
                   </td>
                   <td style={tdStyle}>
                     <input type="number" step="any" value={r.allowed_amount ?? ''} onChange={(e) => updateRate(i, 'allowed_amount', e.target.value)} style={cellInput} />

@@ -10,7 +10,7 @@ const FEATURES = [
   {
     num: '01',
     title: 'Reimbursement Comparison',
-    body: 'See expected vs. actual payments side by side against CMS Medicare benchmark rates. Never wonder if a claim was paid correctly again.',
+    body: 'See what you typically get paid for each code — and flag anything that falls short. Never wonder if a claim was paid correctly again.',
   },
   {
     num: '02',
@@ -33,7 +33,7 @@ const STEPS = [
   {
     n: '02',
     title: 'Automatic Comparison',
-    body: 'Payscope compares each claim against expected CMS Medicare reimbursement rates for your payer mix.',
+    body: 'Payscope compares each claim against what that payer typically pays you for the same code — surfacing inconsistencies in your own data.',
   },
   {
     n: '03',
@@ -49,7 +49,7 @@ const PLANS = [
     desc: 'Everything you need to audit your billing — one flat price.',
     features: [
       'Unlimited claims uploads',
-      'CMS Medicare benchmark comparison',
+      'Self-referential peer baseline analysis',
       'AI-powered narrative + chat',
       'Biller scorecard',
       'CSV & Excel imports',

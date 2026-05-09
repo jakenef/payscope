@@ -16,7 +16,7 @@ from llm import chat, LLMUnavailable
 PARSER_SYSTEM_PROMPT = """You extract participating-provider agreement details from medical insurance contracts.
 Return ONLY a JSON object matching the requested schema. Do not invent data — if a field
 is not present in the contract, use null. Pull rates from any fee schedule table you find.
-Express allowed_amount as a number (USD), pct_of_medicare as a number (e.g. 130 for 130%).
+Express allowed_amount as a number (USD). Only extract explicit dollar amounts — skip rates expressed only as a percentage.
 """
 
 
@@ -48,13 +48,12 @@ def parse_contract(pdf_bytes: bytes) -> dict[str, Any]:
         "    {\n"
         '      "cpt": string,                       // CPT/HCPCS code\n'
         '      "description": string|null,\n'
-        '      "pct_of_medicare": number|null,      // 130 means 130%\n'
         '      "allowed_amount": number|null        // dollar amount\n'
         "    }\n"
         "  ]\n"
         "}\n\n"
         "Skip rows where the CPT is non-numeric, marked 'pass-through', or has 'N/A' rates.\n"
-        "Only include codes with a real allowed amount or a real % of Medicare.\n\n"
+        "Only include codes with a real allowed_amount in dollars. Skip codes with only a percentage rate.\n\n"
         "Contract text:\n---\n"
         f"{text}\n---"
     )
@@ -78,14 +77,12 @@ def parse_contract(pdf_bytes: bytes) -> dict[str, Any]:
         if not cpt:
             continue
         allowed = r.get("allowed_amount")
-        pct = r.get("pct_of_medicare")
-        if allowed is None and pct is None:
+        if allowed is None:
             continue
         cleaned_rates.append({
             "cpt": cpt,
             "description": r.get("description") or None,
-            "pct_of_medicare": float(pct) if pct is not None else None,
-            "allowed_amount": float(allowed) if allowed is not None else None,
+            "allowed_amount": float(allowed),
         })
 
     return {

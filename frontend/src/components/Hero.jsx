@@ -53,8 +53,8 @@ export default function Hero({ onPrimaryCta, onSecondaryCta }) {
         maxWidth: '640px',
         margin: '0 auto 32px',
       }}>
-        Payscope audits every claim against CMS Medicare benchmarks, surfaces underpayments
-        and downcoding in seconds, and gives you the receipts to confront your billing company —
+        Payscope analyzes your claims data, surfaces underpayments and downcoding in seconds,
+        and gives you the receipts to confront your billing company —
         or your payer mix — with hard numbers.
       </p>
 

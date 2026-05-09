@@ -9,7 +9,7 @@ Ground every answer in that context. Cite specific payers, CPT codes, and dollar
 If the user asks something the data cannot answer, say so plainly rather than guessing.
 
 Be concise. Use short paragraphs and the occasional bullet list. Avoid medical-billing jargon unless the user uses it first.
-When recommending action, be specific (e.g., "renegotiate with Aetna for CPT 99214 — currently paying 72% of Medicare")."""
+When recommending action, be specific (e.g., "renegotiate with Aetna for CPT 99214 — currently paying 72% of the typical rate for this code")."""
 
 
 def _summarize_context(analysis: dict) -> str:

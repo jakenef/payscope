@@ -195,7 +195,7 @@ export default function App() {
                     >
                       Upload a CSV or Excel file of submitted claims. Columns are
                       auto-detected, and underpayments and downcoding are
-                      evaluated against CMS Medicare benchmark rates.
+                      flagged using patterns in your own data.
                     </p>
                     <UploadZone onUpload={handleUpload} />
                   </div>
@@ -231,7 +231,7 @@ export default function App() {
                     color: "var(--text-dim)",
                   }}
                 >
-                  <span>CMS Medicare Rates 2024</span>
+                  <span>Self-Referential Analysis</span>
                   <span>·</span>
                   <span>GPT-4o Analysis</span>
                   <span>·</span>
@@ -275,7 +275,7 @@ export default function App() {
                   textTransform: "uppercase",
                 }}
               >
-                Comparing against CMS Medicare benchmark rates
+                Detecting patterns and inconsistencies in your data
               </div>
             </div>
           )}

@@ -2,7 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 /**
  * Upload a participating-provider agreement PDF and get back a structured contract
- * (payer_name, dates, rates: [{cpt, description, pct_of_medicare, allowed_amount}]).
+ * (payer_name, dates, rates: [{cpt, description, allowed_amount}]).
  * Does not persist anything — the frontend stores the result locally after review.
  */
 export async function parseContractPdf(file) {

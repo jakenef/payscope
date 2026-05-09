@@ -20,7 +20,7 @@ const FIPS_TO_USPS = {
 const METRICS = [
   { key: 'biller_score',      label: 'Biller score',      higher: true,  unit: '' },
   { key: 'leakage_pct',       label: 'Revenue leakage',   higher: false, unit: '%' },
-  { key: 'payment_ratio_pct', label: 'Paid vs Medicare',  higher: true,  unit: '%' },
+  { key: 'payment_ratio_pct', label: 'Collection Rate',   higher: true,  unit: '%' },
 ]
 
 // Map a metric value to a color (interpolate red → amber → green based on rank)

@@ -72,13 +72,13 @@ function fmt(n) {
 
 export default function ScoreSidebar({ summary }) {
   const {
-    biller_score, total_medicare_expected, total_paid, leakage_dollars, leakage_pct,
+    biller_score, total_peer_expected, total_paid, leakage_dollars, leakage_pct,
     total_claims, flagged_claims,
     claims_with_contract, contracted_leakage_dollars, contracted_leakage_pct,
   } = summary
 
   const baseKpis = [
-    { label: 'Expected',  value: fmt(total_medicare_expected), color: 'var(--primary-light)' },
+    { label: 'Expected',  value: fmt(total_peer_expected), color: 'var(--primary-light)' },
     { label: 'Collected', value: fmt(total_paid),              color: 'var(--green)' },
     { label: 'Leakage',   value: fmt(leakage_dollars),         color: 'var(--red)' },
     { label: 'Leak Rate', value: `${leakage_pct}%`,            color: 'var(--red)' },

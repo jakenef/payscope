@@ -7,14 +7,14 @@ function pctColor(pct) {
 }
 
 const baseHeaders = [
-  { key: 'cpt',               label: 'CPT' },
-  { key: 'payer',             label: 'Payer' },
-  { key: 'charged',           label: 'Charged' },
-  { key: 'paid',              label: 'Paid' },
-  { key: 'medicare_expected', label: 'Medicare' },
-  { key: 'downcode_pct',      label: 'Paid / Billed' },
-  { key: 'medicare_pct',      label: 'Paid / MCR' },
-  { key: 'medicare_gap',      label: 'Gap' },
+  { key: 'cpt',           label: 'CPT' },
+  { key: 'payer',         label: 'Payer' },
+  { key: 'charged',       label: 'Charged' },
+  { key: 'paid',          label: 'Paid' },
+  { key: 'peer_expected', label: 'Peer Exp.' },
+  { key: 'downcode_pct',  label: 'Paid / Billed' },
+  { key: 'peer_pct',      label: 'Paid / Peer' },
+  { key: 'peer_gap',      label: 'Gap' },
 ]
 const contractHeaders = [
   { key: 'contracted_expected', label: 'Contracted' },
@@ -24,7 +24,7 @@ const contractHeaders = [
 const fmt = (n) => n == null ? '—' : `$${Number(n).toFixed(2)}`
 
 export default function UnderpaymentTable({ rows }) {
-  const [sortKey, setSortKey] = useState('medicare_gap')
+  const [sortKey, setSortKey] = useState('peer_gap')
   const [sortDir, setSortDir] = useState(1)
 
   const hasContractData = rows.some((r) => r.contracted_expected != null)
@@ -72,10 +72,10 @@ export default function UnderpaymentTable({ rows }) {
                 <td style={{ color: 'var(--text-bright)', fontFamily: 'var(--font-sans)', fontSize: '0.75rem' }}>{row.payer}</td>
                 <td style={{ color: 'var(--text-muted)' }}>{fmt(row.charged)}</td>
                 <td style={{ color: 'var(--text)' }}>{fmt(row.paid)}</td>
-                <td style={{ color: 'var(--text-muted)' }}>{fmt(row.medicare_expected)}</td>
+                <td style={{ color: 'var(--text-muted)' }}>{fmt(row.peer_expected)}</td>
                 <td style={{ color: pctColor(row.downcode_pct), fontWeight: 500 }}>{row.downcode_pct}%</td>
-                <td style={{ color: pctColor(row.medicare_pct), fontWeight: 500 }}>{row.medicare_pct}%</td>
-                <td style={{ color: '#e05252', fontWeight: 600 }}>{fmt(row.medicare_gap)}</td>
+                <td style={{ color: pctColor(row.peer_pct), fontWeight: 500 }}>{row.peer_pct != null ? `${row.peer_pct}%` : '—'}</td>
+                <td style={{ color: '#e05252', fontWeight: 600 }}>{fmt(row.peer_gap)}</td>
                 {hasContractData && (
                   <>
                     <td style={{ color: 'var(--text-muted)' }}>{fmt(row.contracted_expected)}</td>

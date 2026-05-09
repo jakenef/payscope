@@ -10,7 +10,7 @@
  *     contract_number: string|null,
  *     raw_filename: string|null,
  *     uploaded_at: string,
- *     rates: [ {cpt, description, pct_of_medicare, allowed_amount}, ... ],
+ *     rates: [ {cpt, description, allowed_amount}, ... ],
  *   }
  */
 

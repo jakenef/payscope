@@ -181,7 +181,7 @@ def get_benchmarks(specialty: str | None, state: str | None, summary: dict[str, 
     user_score = summary.get("biller_score")
     user_leakage = summary.get("leakage_pct")
     total_paid = summary.get("total_paid", 0) or 0
-    expected = summary.get("total_medicare_expected", 0) or 0
+    expected = summary.get("total_peer_expected", 0) or 0
     user_pay_ratio = round((total_paid / expected * 100), 2) if expected > 0 else None
 
     return {
@@ -213,7 +213,7 @@ def get_benchmarks(specialty: str | None, state: str | None, summary: dict[str, 
             },
             {
                 "key": "payment_ratio_pct",
-                "label": "Paid vs Medicare expected",
+                "label": "Collection Rate",
                 "user": user_pay_ratio,
                 "p25": pay_ratio[0],
                 "median": pay_ratio[1],
